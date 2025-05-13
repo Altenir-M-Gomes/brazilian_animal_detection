@@ -1,2 +1,6 @@
-/venv
+venv/
+env/
+*/venv/
+*/env/
 wcs_camera_traps.json
+/imagens
