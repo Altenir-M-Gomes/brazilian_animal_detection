@@ -5,3 +5,5 @@ env/
 wcs_camera_traps.*
 /imagens
 /DATASET_CAMTRAP
+__pycache__/
+*.py[cod]
