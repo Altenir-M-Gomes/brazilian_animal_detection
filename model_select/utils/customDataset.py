@@ -27,7 +27,6 @@ class CustomDataset(Dataset):
         # Take path with index
         image_path = self.images[index]
         # Read image and convert to RGB
-        self.verify_image(image_path)
         image = Image.open(image_path).convert("RGB")
         if self.transforms:
             image = self.transforms(image)

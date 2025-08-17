@@ -42,35 +42,51 @@ class TrainDatasetImplemetation:
             print("test labels:", labels)
             break
 
-    def load_data(self):
-
+    def load_train_data(self, num_workers=4, pin_memory=True):
         transforms_train = transforms.Compose([ 
-                                            self.resize_img, self.color_jitter, 
-                                            self.flip_horizontal, self.flip_vertical, 
-                                            self.random_rotation, self.to_tensor
-                                            ])
+            self.resize_img, 
+            self.color_jitter, 
+            self.flip_horizontal, 
+            self.flip_vertical, 
+            self.random_rotation, 
+            self.to_tensor
+        ])
         
-        transforms_test = transforms.Compose([
-                                            self.resize_img,
-                                            self.to_tensor
-                                            ])
-        # Implamete custom dataset loader
-        train_dataset = CustomDataset(self.train_dataset_path, transforms= transforms_train)
-        test_dataset = CustomDataset(self.test_dataset_path, transforms=transforms_test)
-
+        train_dataset = CustomDataset(self.train_dataset_path, transforms=transforms_train)
         print("no of samples in train dataset", len(train_dataset))
-        print("no of samples in test dataset", len(test_dataset))
+
+        train_loader = DataLoader(
+            train_dataset, 
+            batch_size=self.batch_size, 
+            shuffle=True, 
+            num_workers=num_workers, 
+            pin_memory=pin_memory
+        )
+
+        self.report_size_img(train_loader, [])
+        return train_loader
+
+
+    def load_test_data(self, num_workers=4, pin_memory=True):
+        transforms_test = transforms.Compose([
+            self.resize_img,
+            self.to_tensor
+        ])
         
-        '''
-        DataLoader makes it easy to efficiently load data in batches, 
-        allows shuffling the data to improve training, 
-        and supports parallel loading to speed up data preparation during model training.
-        '''
-        train_loader = DataLoader(train_dataset, batch_size= self.batch_size, shuffle= True)
-        test_loader = DataLoader(test_dataset, batch_size= self.batch_size, shuffle= True)
-        self.report_size_img(train_loader, test_loader)
-        return train_loader, test_loader
-    
+        test_dataset = CustomDataset(self.test_dataset_path, transforms=transforms_test)
+        print("no of samples in test dataset", len(test_dataset))
+
+        test_loader = DataLoader(
+            test_dataset, 
+            batch_size=self.batch_size, 
+            shuffle=False, 
+            num_workers=num_workers, 
+            pin_memory=pin_memory
+        )
+
+        self.report_size_img([], test_loader)
+        return test_loader
+
     def save_image(self):
         train_data, test_data = self.load_data()
         self.report_size_img(train_data, test_data)
