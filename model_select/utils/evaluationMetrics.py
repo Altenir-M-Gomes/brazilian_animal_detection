@@ -19,7 +19,12 @@ from sklearn.metrics import (
 
 
 class Metrics:
-    def __init__(self, model: nn.Module, device: torch.device, test_data: DataLoader, outPutDim: int = 2):
+    def __init__(self, 
+                model: nn.Module, 
+                device: torch.device, 
+                test_data: DataLoader,
+                outPutDim: int = 2, 
+                saveFig: bool = False):
         self.originalModel = model
         self.model = model.eval()
         self.device = device
@@ -28,25 +33,27 @@ class Metrics:
         self.y_pred = np.zeros(0, dtype=int)
         self.y_true = np.zeros(0, dtype=int)
         self.y_score = np.zeros(0, dtype=int)
-
+        self.saveFig = saveFig
+        
     def trainTestData(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        self.model.eval()  # garante que usamos o modelo atualizado em modo eval
         y_pred = np.zeros(0, dtype=int)
         y_true = np.zeros(0, dtype=int)
         y_score = np.empty((0, self.outPutDim))
 
         with torch.no_grad():
-            for images_batch, y_true_batch in self.data:
+            for images_batch, labels_batch in self.data:
                 images_batch = images_batch.to(self.device)
 
                 scores = self.model(images_batch)
                 _, y_pred_batch = scores.max(1)
 
                 y_pred_batch = y_pred_batch.cpu().numpy()
-                y_true_batch = y_true_batch.numpy()
+                labels_batch = labels_batch.numpy()
                 y_score_batch = torch.softmax(scores, dim=1).cpu().numpy()
 
                 y_pred = np.concatenate((y_pred, y_pred_batch))
-                y_true = np.concatenate((y_true, y_true_batch))
+                y_true = np.concatenate((y_true, labels_batch))
                 y_score = np.concatenate((y_score, y_score_batch))
 
         self.y_pred = y_pred
@@ -63,37 +70,32 @@ class Metrics:
             - test_data: a DataLoader containing the test dataset.
             - model: the trained model to evaluate.
         '''
-        y_pred, y_true, _ = self.trainTestData()
-        return accuracy_score(y_true, y_pred)
+        return accuracy_score(self.y_true, self.y_pred)
 
     def getPrecision(self) -> float:
-        y_pred, y_true, _ = self.trainTestData()
-        return precision_score(y_true, y_pred, average='weighted', zero_division=0)
+        return precision_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
 
     def getRecall(self) -> float:
-        y_pred, y_true, _ = self.trainTestData()
-        return recall_score(y_true, y_pred, average='weighted', zero_division=0)
+        return recall_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
 
     def getF1Score(self) -> float:
-        y_pred, y_true, _ = self.trainTestData()
-        return f1_score(y_true, y_pred, average='weighted', zero_division=0)
+        return f1_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
     
     def getConfusionMatrix(self) -> np.ndarray:
-        y_pred, y_true, _ = self.trainTestData()
-        return confusion_matrix(y_true, y_pred)
+        return confusion_matrix(self.y_true, self.y_pred)
 
     def getAuroc(self) -> float:
-        _, y_true, y_score = self.trainTestData()
         
         try:
-            return roc_auc_score(y_true, y_score, multi_class='ovr', average='weighted')
+            return roc_auc_score(self.y_true, self.y_score, multi_class='ovr', average='weighted')
         except ValueError:
             return 0.0
     def classificationReport(self) -> str | dict:
-        y_pred, y_true, _ = self.trainTestData()
-        return classification_report(y_true, y_pred)
+        return classification_report(self.y_true, self.y_pred)
     
     def colectMetrics(self) -> EvaluationDataClass:
+        y_pred, y_true, y_score = self.trainTestData()
+
         return EvaluationDataClass(
             accuracy=self.getAccuracy(), 
             classification_report=self.classificationReport(),
@@ -102,7 +104,7 @@ class Metrics:
             confusion_matrix=self.getConfusionMatrix(), 
             f1_score=self.getF1Score(), 
             recall=self.getRecall(),
-            y_pred=self.y_pred, 
-            y_score=self.y_score,
-            y_true=self.y_true 
+            y_pred=y_pred, 
+            y_score=y_score,
+            y_true=y_true 
             )

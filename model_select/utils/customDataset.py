@@ -19,6 +19,7 @@ class CustomDataset(Dataset):
         for clc in self.classes:
             images_name = os.listdir(self.root_dir + "/" + clc)
             self.images += [self.root_dir + "/" + clc + "/" + img_name for img_name in images_name]
+        print(self.classes)
 
     def __len__(self):
         return len(self.images)
