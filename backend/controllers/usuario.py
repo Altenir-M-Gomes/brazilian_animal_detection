@@ -10,9 +10,9 @@ from sqlalchemy.exc import IntegrityError
 
 from models.usuario import UsuarioModel
 from schemas.usuario import UsuarioSchemaBase, UsuarioSchemaCreate, UsuarioSchemaUp
-from core.deps import get_session, get_current_user
-from core.security import gerar_hash_senha
-from core.auth import autenticar, criar_token_acesso
+from services.deps import get_session, get_current_user
+from services.auth import autenticar, criar_token_acesso
+from ultils.security import gerar_hash_senha
 
 
 router = APIRouter()
@@ -28,7 +28,7 @@ def get_logado(usuario_logado: UsuarioModel = Depends(get_current_user)):
 @router.post('/signup', status_code=status.HTTP_201_CREATED, response_model=UsuarioSchemaBase)
 async def post_usuario(usuario: UsuarioSchemaCreate, db: AsyncSession = Depends(get_session)):
     novo_usuario: UsuarioModel = UsuarioModel(nome=usuario.nome, sobrenome=usuario.sobrenome,
-                                              email=usuario.email, senha=gerar_hash_senha(usuario.senha), eh_admin=usuario.eh_admin)
+                                              email=usuario.email, senha=gerar_hash_senha(usuario.senha))
     async with db as session:
         try:
             session.add(novo_usuario)
@@ -66,8 +66,6 @@ async def put_usuario(usuario_id: int, usuario: UsuarioSchemaUp, db: AsyncSessio
                 usuario_up.sobrenome = usuario.sobrenome
             if usuario.email:
                 usuario_up.email = usuario.email
-            if usuario.eh_admin:
-                usuario_up.eh_admin = usuario.eh_admin
             if usuario.senha:
                 usuario_up.senha = gerar_hash_senha(usuario.senha)
 

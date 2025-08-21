@@ -11,8 +11,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt 
  
 from models.usuario import UsuarioModel
-from core.configs import settings
-from core.security import verificar_senha
+from configs.dbConection import settings
+from ultils.security import verificar_senha
 
 oauth2_schema = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/usuarios/login"

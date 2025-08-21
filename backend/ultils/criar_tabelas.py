@@ -1,5 +1,5 @@
-from core.configs import settings
-from core.database import engine
+from backend.configs.dbConection import settings
+from backend.configs.database import engine
 
 
 async def create_tables() -> None:
