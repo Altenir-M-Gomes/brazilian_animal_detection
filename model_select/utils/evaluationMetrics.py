@@ -20,8 +20,7 @@ from sklearn.metrics import (
 
 class Metrics:
     def __init__(self, model: nn.Module, device: torch.device, test_data: DataLoader, outPutDim: int = 2):
-        self.originalModel = model
-        self.model = model.eval()
+        self.model = model
         self.device = device
         self.data = test_data
         self.outPutDim = outPutDim
@@ -30,11 +29,11 @@ class Metrics:
         self.y_score = np.zeros(0, dtype=int)
         
     def trainTestData(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        self.model.eval()  # garante que usamos o modelo atualizado em modo eval
         y_pred = np.zeros(0, dtype=int)
         y_true = np.zeros(0, dtype=int)
         y_score = np.empty((0, self.outPutDim))
 
+        self.model.eval()  # garante que usamos o modelo atualizado em modo eval
         with torch.no_grad():
             for images_batch, labels_batch in self.data:
                 images_batch = images_batch.to(self.device)
