@@ -6,7 +6,7 @@ from .evalutaionDataClass import EvaluationDataClass
 import os
 
 class EvaluationState:
-    def __init__(self):
+    def __init__(self, saveFig: bool = False):
         self.accuracies: List[float] = []
         self.aurocs: List[float] = []
         self.precisions: List[float] = []
@@ -14,11 +14,14 @@ class EvaluationState:
         self.f1_scores: List[float] = []
         self.confusion_matrices: List[np.ndarray] = []
         self.classification_reports: List[str] = []
+        self.saveFig = saveFig
 
         # Dados brutos das predições
         self.all_y_true: List[np.ndarray] = []
         self.all_y_pred: List[np.ndarray] = []
         self.all_y_score: List[np.ndarray] = []
+
+        self.saveFig: bool = False
 
     def appendResult(self, result: EvaluationDataClass):
         self.accuracies.append(result.accuracy)
@@ -36,21 +39,44 @@ class EvaluationState:
         os.makedirs(path, exist_ok=True)
         plot.savefig(os.path.join(path, f"{name}.{type}"), format=type, bbox_inches='tight')
         plt.close(plot)
+        
+    def plotAccuracy(self, path: str = "figures"):
+        fig, ax = plt.subplots()
+        ax.plot(self.accuracies, marker='o')
+        ax.set_title("Accuracy por Geração")
+        ax.set_xlabel("Geração")
+        ax.set_ylabel("Accuracy")
+        ax.grid(True)
 
-    def plotAccuracy(self):
-        plt.plot(self.accuracies, marker='o')
-        plt.title("Accuracy por Geração")
-        plt.xlabel("Geração")
-        plt.ylabel("Accuracy")
-        plt.grid(True)
+        if self.saveFig:
+            self.saveMetrics(fig, path, name="accuracy")
+        
         plt.show()
 
-    def plotAuroc(self):
-        plt.plot(self.aurocs, marker='o', color='orange')
-        plt.title("AUROC por Geração")
-        plt.xlabel("Geração")
-        plt.ylabel("AUROC")
-        plt.grid(True)
+    def plotAuroc(self, path: str = "figures"):
+        fig, ax = plt.subplots()
+        ax.plot(self.aurocs, marker='o', color='orange')
+        ax.set_title("AUROC por Geração")
+        ax.set_xlabel("Geração")
+        ax.set_ylabel("AUROC")
+        ax.grid(True)
+
+        if self.saveFig:
+            self.saveMetrics(fig, path, name="auroc")
+        
+        plt.show()
+
+    def plotConfusionMatrixLast(self, path: str = "figures"):
+        cm = self.confusion_matrices[-1]
+        fig, ax = plt.subplots(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+        ax.set_title("Matriz de Confusão - Última Geração")
+        ax.set_xlabel("Predito")
+        ax.set_ylabel("Real")
+
+        if self.saveFig:
+            self.saveMetrics(fig, path, name="confusion_matrix")
+        
         plt.show()
 
     def plotPrecision(self):
@@ -75,15 +101,6 @@ class EvaluationState:
         plt.xlabel("Geração")
         plt.ylabel("F1 Score")
         plt.grid(True)
-        plt.show()
-
-    def plotConfusionMatrixLast(self):
-        cm = self.confusion_matrices[-1]
-        plt.figure(figsize=(6, 5))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
-        plt.title("Matriz de Confusão - Última Geração")
-        plt.xlabel("Predito")
-        plt.ylabel("Real")
         plt.show()
 
     def reset(self):
