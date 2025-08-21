@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from configs.database import Session
 from services.auth import oauth2_schema
-from configs.dbConection import settings
+from backend.configs.envVariables import settings
 from models.usuario import UsuarioModel
 
 

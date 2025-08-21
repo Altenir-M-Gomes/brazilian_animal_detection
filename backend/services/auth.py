@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from jose import jwt 
  
 from models.usuario import UsuarioModel
-from configs.dbConection import settings
+from backend.configs.envVariables import settings
 from ultils.security import verificar_senha
 
 oauth2_schema = OAuth2PasswordBearer(
@@ -33,7 +33,7 @@ async def autenticar(email: EmailStr, senha: str, db: AsyncSession) -> Optional[
         return usuario
 
 
-def _criar_token(tipo_token: str, tempo_vida: timedelta, sub: str) -> str:
+def _CreateToken(tipo_token: str, tempo_vida: timedelta, sub: str) -> str:
 
     payload = {}
     
@@ -52,7 +52,7 @@ def _criar_token(tipo_token: str, tempo_vida: timedelta, sub: str) -> str:
 
 def criar_token_acesso(sub: str) -> str:
 
-    return _criar_token(
+    return _CreateToken(
         tipo_token='acess_token',
         tempo_vida=timedelta(minutes=settings.ACESS_TOKEN_EXPIRE_MINUTES),
         sub=sub

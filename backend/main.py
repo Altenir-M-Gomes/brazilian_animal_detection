@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from configs.dbConection import settings
+from backend.configs.envVariables import settings
 from app import api_router
 
 

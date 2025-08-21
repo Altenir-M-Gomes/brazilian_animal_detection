@@ -1,4 +1,4 @@
-from backend.configs.dbConection import settings
+from backend.configs.envVariables import settings
 from backend.configs.database import engine
 
 
