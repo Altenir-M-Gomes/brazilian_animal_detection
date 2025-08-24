@@ -32,3 +32,4 @@ async def login(
         "access_token": createAcessToken(sub=usuario.id),
         "token_type": "bearer"
     }
+

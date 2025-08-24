@@ -8,9 +8,7 @@ from jose import jwt
 from models.usuario import UsuarioModel
 from configs.envVariables import settings
 from ultils.security import verifyPassWord
-from fastapi.security import HTTPBearer
 
-bearer_scheme = HTTPBearer()
 
 async def auth(email: EmailStr, senha: str, db: AsyncSession) -> Optional[UsuarioModel]:
     async with db as session:
