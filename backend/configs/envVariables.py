@@ -12,8 +12,8 @@ class Settings(BaseSettings):
     ACESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     
     model_config = SettingsConfigDict(
-        env_file='.env',        # arquivo .env que será lido
-        case_sensitive=True     # diferencia maiúsculas e minúsculas
+        env_file='.env',        
+        case_sensitive=True
     )
 
 

@@ -1,10 +1,24 @@
 from fastapi import FastAPI
-
-from backend.configs.envVariables import settings
+from configs.envVariables import settings
 from app import api_router
+from fastapi import FastAPI
 
+app = FastAPI(
+    title="Brazilian Animal Detection API",
+    description="""
+API para detecção de animais brasileiros.  
+Inclui endpoints para autenticação, usuários e análise de dados.  
+""",
+    version="1.0.0",
+    contact={
+        "name": "Seu Nome",
+        "email": "seuemail@exemplo.com",
+    },
+    license_info={
+        "name": "MIT License",
+    },
+)
 
-app = FastAPI(title='Curso API - Segurança')
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 

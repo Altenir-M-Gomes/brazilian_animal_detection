@@ -1,7 +1,7 @@
 from sqlalchemy import Integer, String, Column, Boolean
 from sqlalchemy.orm import relationship
 
-from backend.configs.envVariables import settings
+from configs.envVariables import settings
 
 
 class UsuarioModel(settings.DBBaseModel):
