@@ -3,7 +3,6 @@ from configs.database import engine
 
 
 async def createTables() -> None:
-    import models.usuario
     print('Criando as tabelas no banco de dados')
 
     async with engine.begin() as conn:

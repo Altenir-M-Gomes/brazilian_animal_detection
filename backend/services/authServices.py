@@ -1,6 +1,5 @@
 from pytz import timezone
-
-from typing import Optional, List
+from typing import Optional
 from datetime import datetime, timedelta
 from pydantic import EmailStr
 from sqlalchemy.future import select 

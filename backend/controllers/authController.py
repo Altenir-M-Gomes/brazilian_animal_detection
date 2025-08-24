@@ -1,18 +1,11 @@
-from typing import List, Optional, Any
-
 from fastapi import APIRouter, status, Depends, HTTPException, Response
-
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy.exc import IntegrityError
-from fastapi import Body, Depends, status
+from fastapi import Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.usuario import UsuarioModel
-from schemas.usuario import UsuarioSchema, UsuarioSchemaCreate, UsuarioSchemaUp,  TokenSchema
-from services.users import getSession, getCurrentUser
-from services.auth import auth, createAcessToken
-from ultils.security import createHashPassword
-from schemas.usuario import LoginSchema
+from schemas.userSchemas import TokenSchema
+from services.usersServices import getSession
+from services.authServices import auth, createAcessToken
+from schemas.userSchemas import LoginSchema
 
 router = APIRouter()
 

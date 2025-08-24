@@ -15,23 +15,17 @@ class TokenSchema(BaseModel):
         }
 
 class LoginSchema(BaseModel):
-    email: EmailStr = Field(..., example="teste@email.com")
-    senha: str = Field(..., example="123456")
+    email: EmailStr = Field(..., example="altenirgomes@gmail.com")
+    senha: str = Field(..., example="1234")
 
 class UsuarioSchema(BaseModel):
-    id: Optional[int] = None
-    nome: str
-    sobrenome: str
-    email: EmailStr
+    id: Optional[int] = Field(..., example="1")
+    nome: str = Field(..., example="Altenir")
+    sobrenome: str = Field(..., example="Modesto Gomes")
+    email: EmailStr = Field(..., example="altenirgomes@gmail.com")
 
     class Config:
         from_attributes  = True
 
 class UsuarioSchemaCreate(UsuarioSchema):
-    senha: str
-
-class UsuarioSchemaUp(UsuarioSchema):
-    nome: Optional[str]
-    sobrenome: Optional[str]
-    email: Optional[EmailStr]
-    senha: Optional[str]
+    senha: str = Field(..., example="1234")

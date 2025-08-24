@@ -5,8 +5,8 @@ from sqlalchemy.exc import IntegrityError
 from fastapi import Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from models.usuario import UsuarioModel
-from schemas.usuario import UsuarioSchema, UsuarioSchemaCreate
-from services.users import getSession
+from schemas.userSchemas import UsuarioSchema, UsuarioSchemaCreate
+from services.usersServices import getSession
 from ultils.security import createHashPassword
 
 router = APIRouter()

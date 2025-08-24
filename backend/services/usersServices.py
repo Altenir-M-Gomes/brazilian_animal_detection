@@ -5,10 +5,10 @@ from sqlalchemy.future import select
 from configs.database import Session
 from models.usuario import UsuarioModel
 from ultils.dbSession import getSession
-from repository.user import UserRepository
+from repository.userRepository import UserRepository
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from configs.envVariables import settings
-from schemas.usuario import TokenSchema
+from schemas.userSchemas import TokenSchema
 
 
 security = HTTPBearer()
