@@ -1,7 +1,7 @@
 from sqlalchemy import Integer, String, Column, Boolean
 from sqlalchemy.orm import relationship
 
-from core.configs import settings
+from configs.envVariables import settings
 
 
 class UsuarioModel(settings.DBBaseModel):
@@ -12,4 +12,3 @@ class UsuarioModel(settings.DBBaseModel):
     sobrenome = Column(String(256), nullable=True)
     email = Column(String(256), index=True, nullable=False, unique=True)
     senha = Column(String(256), nullable=False)
-    eh_admin = Column(Boolean, default=False)
