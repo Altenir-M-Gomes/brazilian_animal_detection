@@ -2,7 +2,7 @@ from fastapi import APIRouter, status, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from schemas.userSchemas import TokenSchema
+from schemas.tokenSchemas import TokenSchema
 from services.usersServices import getSession
 from services.authServices import auth, createAcessToken
 from schemas.userSchemas import LoginSchema

@@ -8,21 +8,20 @@ from jose import jwt
 from models.usuario import UsuarioModel
 from configs.envVariables import settings
 from ultils.security import verifyPassWord
-
+from repository.userRepository import UserRepository
 
 async def auth(email: EmailStr, senha: str, db: AsyncSession) -> Optional[UsuarioModel]:
-    async with db as session:
-        query = select(UsuarioModel).filter(UsuarioModel.email == email)
-        result = await session.execute(query)
-        usuario: UsuarioModel = result.scalars().unique().one_or_none()
+    user: Optional[UsuarioModel] = await UserRepository.findBy(
+        db=db, email=email
+    )
 
-        if not usuario:
-            return None
+    if not user:
+        return None
 
-        if not verifyPassWord(senha, usuario.senha):
-            return None
+    if not verifyPassWord(senha, user.senha):
+        return None
 
-        return usuario
+    return user
 
 
 def _createToken(tipo_token: str, tempo_vida: timedelta, sub: str) -> str:
@@ -33,12 +32,10 @@ def _createToken(tipo_token: str, tempo_vida: timedelta, sub: str) -> str:
     expira = datetime.now(tz=zone) + tempo_vida
 
     payload["type"] = tipo_token
-
     payload["exp"] = expira
-
     payload["iat"] = datetime.now(tz=zone)
-
     payload["sub"] = str(sub)
+    
     
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
 

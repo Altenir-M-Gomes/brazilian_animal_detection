@@ -8,7 +8,7 @@ from ultils.dbSession import getSession
 from repository.userRepository import UserRepository
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from configs.envVariables import settings
-from schemas.userSchemas import TokenSchema
+from schemas.tokenSchemas import TokenPayload
 
 security = HTTPBearer()
 
@@ -31,17 +31,16 @@ async def getCurrentUser(
             options={"verify_aud": False},
         )
 
-        username: str = payload.get("sub")
-        if username is None:
+        userId: str = payload.get("sub")
+        if userId is None:
             raise credential_exception
 
-        token_data = TokenSchema(username=username)
     except JWTError:
         raise credential_exception
 
     # garante que chama o repositório da forma assíncrona
     user: Optional[UsuarioModel] = await UserRepository.findById(
-        db=db, id=int(token_data.username)
+        db=db, id=int(userId)
     )
 
     if user is None:
