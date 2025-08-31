@@ -1,11 +1,11 @@
-import LoginPage from './pages/login'
+import CadastrarPage from './pages/cadastrar'
 
 function App() {
   
 
   return (
     <>
-      <LoginPage/>
+      <CadastrarPage/>
     </>
   )
 }
