@@ -1,11 +1,11 @@
-import CadastrarPage from './pages/cadastrar'
+import PrevisaoScreen from './pages/previsao'
 
 function App() {
   
 
   return (
     <>
-      <CadastrarPage/>
+      <PrevisaoScreen/>
     </>
   )
 }
