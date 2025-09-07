@@ -7,7 +7,7 @@ from fastapi import APIRouter
 from torchvision import models, transforms
 from fastapi import APIRouter, Depends
 from models.usuario import UsuarioModel
-from services.usersServices import getCurrentUser  # a
+from services.usersServices import UserService  # a
 
 router = APIRouter()
 
@@ -38,7 +38,7 @@ transform = transforms.Compose([
 ])
 
 @router.post("/predict")
-async def predict(file: UploadFile = File(...), current_user: UsuarioModel = Depends(getCurrentUser)  ):
+async def predict(file: UploadFile = File(...), current_user: UsuarioModel = Depends(UserService.getCurrentUser)  ):
     try:
         # Abre a imagem recebida
         image = Image.open(file.file).convert("RGB")

@@ -1,9 +1,9 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from models import usuario as User # seu modelo SQLAlchemy
-from schemas.userSchemas import UsuarioSchemaCreate  # Pydantic schemas
+from models import usuario as User
+from schemas.userSchemas import UsuarioSchemaCreate
 from models.usuario import UsuarioModel
-from typing import List
+from typing import Optional
 
 
 class UserRepository:
@@ -14,8 +14,7 @@ class UserRepository:
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def create(db: AsyncSession, data: UsuarioSchemaCreate):
-        user = User(**data)
+    async def create(db: AsyncSession, user: UsuarioModel):
         db.add(user)
         await db.commit()
         await db.refresh(user)
@@ -23,7 +22,7 @@ class UserRepository:
     
         
     @staticmethod
-    async def findBy(db: AsyncSession, **filters) -> list[UsuarioModel]:
+    async def findBy(db: AsyncSession, **filters) -> Optional[UsuarioModel]:
         query = select(UsuarioModel)
         for attr, value in filters.items():
             query = query.where(getattr(UsuarioModel, attr) == value)

@@ -1,35 +1,25 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Response
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import Depends, status
+from fastapi import APIRouter, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from schemas.tokenSchemas import TokenSchema
-from services.usersServices import getSession
-from services.authServices import auth, createAcessToken
 from schemas.userSchemas import LoginSchema
+from services.usersServices import getSession
+from services.authServices import AuthService
+from ultils.wrapperExecption import wrap_exception  # import do wrapper
 
-router = APIRouter()
+class AuthController:
 
-@router.post('/login', summary="Login de usuário", tags=["Autenticação"], response_model=TokenSchema)
-async def login(
-    body: LoginSchema,
-    db: AsyncSession = Depends(getSession)
-):
-    """
-    Realiza login de usuário.
+    router = APIRouter()
 
-    - **email**: Email do usuário
-    - **senha**: Senha do usuário
-    """
-    usuario = await auth(email=body.email, senha=body.senha, db=db)
-
-    if not usuario:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail='Dados de acesso incorretos.'
-        )
-
-    return {
-        "access_token": createAcessToken(sub=usuario.id),
-        "token_type": "bearer"
-    }
-
+    @router.post(
+        "/login",
+        summary="Login de usuário",
+        tags=["Autenticação"],
+        response_model=TokenSchema
+    )
+    @wrap_exception
+    async def login(body: LoginSchema, db: AsyncSession = Depends(getSession)):
+        usuario = await AuthService.authenticateUser(email=body.email, senha=body.senha, db=db)
+        return {
+            "access_token": AuthService.create_access_token(sub=usuario.id),
+            "token_type": "bearer"
+        }
