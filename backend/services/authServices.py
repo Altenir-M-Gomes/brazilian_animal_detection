@@ -27,14 +27,14 @@ class AuthService:
         return user
 
     @classmethod
-    def _create_token(cls, tipo_token: str, tempo_vida: timedelta, sub: str) -> str:
+    def _createToken(cls, tipoToken: str, tempo_vida: timedelta, sub: str) -> str:
         """
         Cria um JWT com tempo de expiração e tipo de token.
         """
         payload = {}
         expira = datetime.now(tz=cls.zone) + tempo_vida
 
-        payload["type"] = tipo_token
+        payload["type"] = tipoToken
         payload["exp"] = expira
         payload["iat"] = datetime.now(tz=cls.zone)
         payload["sub"] = str(sub)
@@ -42,23 +42,14 @@ class AuthService:
         return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
 
     @classmethod
-    def create_access_token(cls, sub: str) -> str:
+    def createAccessToken(cls, sub: str) -> str:
         """
         Cria token de acesso com tempo de expiração padrão.
         """
-        return cls._create_token(
-            tipo_token="access_token",
+        return cls._createToken(
+            tipoToken="access_token",
             tempo_vida=timedelta(minutes=settings.ACESS_TOKEN_EXPIRE_MINUTES),
             sub=sub
         )
 
-    @classmethod
-    def create_refresh_token(cls, sub: str, tempo_vida: timedelta = timedelta(days=7)) -> str:
-        """
-        Cria token de refresh com tempo de expiração customizável.
-        """
-        return cls._create_token(
-            tipo_token="refresh_token",
-            tempo_vida=tempo_vida,
-            sub=sub
-        )
+   

@@ -20,6 +20,6 @@ class AuthController:
     async def login(body: LoginSchema, db: AsyncSession = Depends(getSession)):
         usuario = await AuthService.authenticateUser(email=body.email, senha=body.senha, db=db)
         return {
-            "access_token": AuthService.create_access_token(sub=usuario.id),
+            "access_token": AuthService.createAccessToken(sub=usuario.id),
             "token_type": "bearer"
         }

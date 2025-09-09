@@ -16,3 +16,19 @@ class UsuarioSchema(BaseModel):
 
 class UsuarioSchemaCreate(UsuarioSchema):
     senha: str = Field(..., example="12345")
+
+class ResetPasswordResponseSchema(BaseModel):
+    mensagem: str
+
+
+class ResetPasswordEmailSchema(BaseModel):
+    email: EmailStr = Field(..., example="altenirgomes@gmail.com")
+
+
+class UsuarioUpdateSchema(BaseModel):
+    id: Optional[int] = Field(..., example=1)
+    nome: str = Field(..., example="Altenir")
+    sobrenome: str = Field(..., example="Modesto Gomes")
+    email: EmailStr = Field(..., example="altenirgomes@gmail.com")
+    class Config:
+        from_attributes = True
