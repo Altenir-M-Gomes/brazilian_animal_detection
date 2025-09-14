@@ -1,28 +1,83 @@
 
-from fastapi import APIRouter, status, Depends, HTTPException
+from fastapi import APIRouter, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.exc import IntegrityError
 from fastapi import Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from models.usuario import UsuarioModel
 from schemas.userSchemas import UsuarioSchema, UsuarioSchemaCreate
 from services.usersServices import getSession
-from ultils.security import createHashPassword
+from ultils.wrapperExecption import wrap_exception
+from services.usersServices import UserService
+from models.usuario import UsuarioModel
+from schemas.tokenSchemas import TokenVerifedSchema
+from schemas.tokenSchemas import TokenVerifySchema
+from schemas.userSchemas import ResetPasswordResponseSchema
+from schemas.userSchemas import ResetPasswordEmailSchema
+from schemas.userSchemas import UsuarioUpdateSchema
+from typing import Tuple
 
-router = APIRouter()
+class UserController:
+    router = APIRouter()
 
 
-# POST / Signup
-@router.post('/signup', status_code=status.HTTP_201_CREATED, response_model=UsuarioSchema, tags=['Usuário'])
-async def post_usuario(usuario: UsuarioSchemaCreate, db: AsyncSession = Depends(getSession)):
-    novo_usuario: UsuarioModel = UsuarioModel(nome=usuario.nome, sobrenome=usuario.sobrenome,
-                                              email=usuario.email, senha=createHashPassword(usuario.senha))
-    async with db as session:
-        try:
-            session.add(novo_usuario)
-            await session.commit()
+    @router.post('/signup', status_code=status.HTTP_201_CREATED, response_model=UsuarioSchema, tags=['Usuário'])
+    @wrap_exception
+    async def createUser(user: UsuarioSchemaCreate, db: AsyncSession = Depends(getSession)):
+        newUser: UsuarioModel = await UserService.createUser(user=user, db=db)
+        
+        await UserService.sendConfirmationEmail(emailTo = newUser.email, nome = newUser.nome, id=int(newUser.id))
+        
+        return newUser
+        
+    
+    @router.post('/verify-acount', status_code=status.HTTP_201_CREATED, response_model=TokenVerifedSchema, tags=['Usuário'])
+    @wrap_exception
+    async def verifyAcount(body: TokenVerifySchema, db: AsyncSession = Depends(getSession)):
+        
+        authToken: Tuple[UsuarioModel, str] = await UserService.verifyAccount(token=body.token, db=db)
+        
+        return {
+            "user": authToken[0],
+            "access_token": authToken[1],
+            "token_type": "bearer"
 
-            return novo_usuario
-        except IntegrityError:
-            raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                                detail='Já existe um usuário com este email cadastrado.')
+        }
+    
+    @router.post('/reset-password', status_code=status.HTTP_201_CREATED, response_model=ResetPasswordResponseSchema, tags=['Usuário'])
+    @wrap_exception
+    async def resetPassword(email: ResetPasswordEmailSchema, db: AsyncSession = Depends(getSession)):
+        
+        await UserService.sendConfirmationResetPasswordEmail(emailTo=email, db=db)
+        
+        return {
+            "mensagem": 'Foi enviado o email para alterar a senha!'
+        }
+
+    @router.post('/define-password', status_code=status.HTTP_201_CREATED, response_model=TokenVerifedSchema, tags=['Usuário'])
+    @wrap_exception
+    async def definePassword(body: TokenVerifySchema, db: AsyncSession = Depends(getSession)):
+        
+        authToken: Tuple[UsuarioModel, str] = await UserService.defineNewPassword(token=body.token, db=db)
+        
+        return {
+            "user": authToken[0],
+            "access_token": authToken[1],
+            "token_type": "bearer"
+
+        }
+
+    @router.patch('/user', status_code=status.HTTP_201_CREATED, response_model=UsuarioUpdateSchema, tags=['Usuário'])
+    @wrap_exception
+    async def updateUser(body: UsuarioUpdateSchema, db: AsyncSession = Depends(getSession)):
+        
+        authToken: Tuple[UsuarioModel, str] = await UserService.defineNewPassword(token=body.token, db=db)
+        
+        return {
+            "user": authToken[0],
+            "access_token": authToken[1],
+            "token_type": "bearer"
+
+        }
+
+
+
+         

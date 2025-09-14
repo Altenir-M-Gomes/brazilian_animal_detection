@@ -2,6 +2,9 @@ from fastapi import FastAPI
 from configs.envVariables import settings
 from app import api_router
 from fastapi import FastAPI
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI(
     title="Brazilian Animal Detection API",

@@ -2,6 +2,7 @@ venv/
 env/
 */venv/
 */env/
+*/.env
 wcs_camera_traps.*
 /imagens
 /DATASET_CAMTRAP

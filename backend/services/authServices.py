@@ -2,48 +2,54 @@ from pytz import timezone
 from typing import Optional
 from datetime import datetime, timedelta
 from pydantic import EmailStr
-from sqlalchemy.future import select 
 from sqlalchemy.ext.asyncio import AsyncSession
-from jose import jwt 
+from jose import jwt
+from ultils.customError import APIError
 from models.usuario import UsuarioModel
 from configs.envVariables import settings
 from ultils.security import verifyPassWord
 from repository.userRepository import UserRepository
 
-async def auth(email: EmailStr, senha: str, db: AsyncSession) -> Optional[UsuarioModel]:
-    user: Optional[UsuarioModel] = await UserRepository.findBy(
-        db=db, email=email
-    )
+class AuthService:
+    zone = timezone("America/Sao_Paulo")
 
-    if not user:
-        return None
+    @staticmethod
+    async def authenticateUser(db: AsyncSession, email: EmailStr, senha: str) -> Optional[UsuarioModel]:
+        
+        user: Optional[UsuarioModel] = await UserRepository.findBy(db=db, email=email)
 
-    if not verifyPassWord(senha, user.senha):
-        return None
+        if not user:
+            raise APIError(errors=[{"message": "Usuário não encontrado"}], code=404)
+        
+        elif not verifyPassWord(senha, user.senha):
+            raise APIError(errors=[{"message": "Senha incorreta"}], code=400)
 
-    return user
+        return user
 
+    @classmethod
+    def _createToken(cls, tipoToken: str, tempo_vida: timedelta, sub: str) -> str:
+        """
+        Cria um JWT com tempo de expiração e tipo de token.
+        """
+        payload = {}
+        expira = datetime.now(tz=cls.zone) + tempo_vida
 
-def _createToken(tipo_token: str, tempo_vida: timedelta, sub: str) -> str:
+        payload["type"] = tipoToken
+        payload["exp"] = expira
+        payload["iat"] = datetime.now(tz=cls.zone)
+        payload["sub"] = str(sub)
 
-    payload = {}
-    
-    zone = timezone('America/Sao_Paulo')
-    expira = datetime.now(tz=zone) + tempo_vida
+        return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
 
-    payload["type"] = tipo_token
-    payload["exp"] = expira
-    payload["iat"] = datetime.now(tz=zone)
-    payload["sub"] = str(sub)
-    
-    
-    return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.ALGORITHM)
+    @classmethod
+    def createAccessToken(cls, sub: str) -> str:
+        """
+        Cria token de acesso com tempo de expiração padrão.
+        """
+        return cls._createToken(
+            tipoToken="access_token",
+            tempo_vida=timedelta(minutes=settings.ACESS_TOKEN_EXPIRE_MINUTES),
+            sub=sub
+        )
 
-def createAcessToken(sub: str) -> str:
-
-    return _createToken(
-        tipo_token='acess_token',
-        tempo_vida=timedelta(minutes=settings.ACESS_TOKEN_EXPIRE_MINUTES),
-        sub=sub
-    )
-
+   
