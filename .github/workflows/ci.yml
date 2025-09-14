@@ -7,7 +7,6 @@ on:
 
 env:
   IMAGE_NAME: altenirm/deteao-de-animais:latest
-  KUBECTL_CONFIG: ${{ secrets.KUBECTL_CONFIG }}
 
 jobs:
   build-docker-app:
@@ -51,7 +50,7 @@ jobs:
       - name: Configure Kubeconfig
         run: |
           mkdir -p ~/.kube
-          echo "${KUBECTL_CONFIG}" > ~/.kube/config
+          echo "${{ secrets.KUBECTL_CONFIG }}" > ~/.kube/config
 
       - name: Cleanup Old Resources
         run: |
@@ -68,12 +67,12 @@ jobs:
       - name: Deploy MongoDB
         run: |
           kubectl apply -f deploy/deployments/servicos-publicos-mongodb.yaml
-          sleep 60
+          kubectl rollout status deployment/servicos-publicos-mongodb
 
       - name: Deploy API
         run: |
           kubectl apply -f deploy/deployments/servicos-publicos-api.yaml
-          sleep 60
+          kubectl rollout status deployment/servicos-publicos-api
 
       - name: Verify Deployment
         run: |
