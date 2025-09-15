@@ -27,7 +27,7 @@ export default function CadastrarPage() {
                   Criar conta
                 </Button>
               <p className="text-sm pt-4">
-                Já possui uma conta? <a href="#" className="text-blue-600 hover:underline">Fazer login</a>
+                Já possui uma conta? <a href="/login" className="text-blue-600 hover:underline">Fazer login</a>
               </p>
             </CardContent>
           </Card>

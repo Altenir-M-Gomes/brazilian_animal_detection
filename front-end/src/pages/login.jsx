@@ -19,11 +19,11 @@ export default function LoginPage() {
                 <Label  htmlFor="password">Senha</Label>
                 <Input className="h-[40px] border border-gray-400 focus:border-gray-500" id="password" type="password" placeholder="Digite sua senha aqui" />
               </div>
-                <Button href="/login" className="w-full bg-[#1e3a56] h-[35px] text-white">
+                <Button href="/login" className="w-full bg-[#1e3a56] h-[35px] text-white" >
                     Login
                 </Button>
               <p className="text-sm pt-4">
-                Não tem uma conta? <a href="#" className="text-blue-600 hover:underline">Cadastre-se</a>
+                Não tem uma conta? <a href="/cadastrar" className="text-blue-600 hover:underline">Cadastre-se</a>
               </p>
             </CardContent>
           </Card>
