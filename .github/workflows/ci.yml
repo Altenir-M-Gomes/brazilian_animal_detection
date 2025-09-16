@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Docker username
-        run: echo "User: $DOCKERHUB_USER"
+        run: echo "$DOCKERHUB_USER"
         env:
           DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USER }}
 
