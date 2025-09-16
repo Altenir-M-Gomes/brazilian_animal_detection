@@ -9,35 +9,34 @@ env:
   IMAGE_NAME: altenirm/deteao-de-animais:latest
 
 jobs:
-  build-docker-app:
-    name: Build and Push Docker Image
+  buildar-docker-api:
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master')) 
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Copy .env.example
-        run: cp .env.example .env
-
-      - name: Build Docker Image
-        run: docker build -t $IMAGE_NAME .
-
-      - name: Push Docker Image
-        run: docker push $IMAGE_NAME
+      - name: Configurar ambiente
+        run: |
+          cp .env.example .env
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: $IMAGE_NAME
 
   deploy-app:
     name: Deploy to Kubernetes
     runs-on: ubuntu-latest
-    needs: build-docker-app
+    needs: buildar-docker-api
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
