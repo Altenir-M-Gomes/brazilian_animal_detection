@@ -23,6 +23,7 @@ jobs:
 
       - name: Configurar ambiente
         run: |
+          ls -la
           cp /backend/.env.example /backend/.env
           echo "DB_URL=${{ secrets.DB_URL }}" >> /backend/.env
           echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> /backend/.env
