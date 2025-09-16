@@ -2,25 +2,21 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches:
-      - dev
-
-env:
-  IMAGE_NAME: altenirm/deteao-de-animais:latest
+    branches: [ dev, master ]
+  pull_request:
+    branches: [ dev, master ]
 
 jobs:
-  build-docker-app:
-    name: Build and Push Docker Image
+  buildar-docker-api:
     runs-on: ubuntu-latest
+    environment: "Brazilian animais" # pega os secrets do ambiente
+
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -51,37 +47,48 @@ jobs:
       - name: Set up Kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: latest
+          context: .
+          push: true
+          tags: ${{ secrets.IMAGEM_DOCKER }}
 
-      - name: Configure Kubeconfig
+  fazer-deploy:
+    runs-on: ubuntu-latest
+    needs: buildar-docker-api
+    environment: "Brazilian animais" # pega os secrets do ambiente
+
+    steps:
+      - name: Criar pasta kube
+        run: mkdir -p ~/.kube
+  
+      - name: Criar kubeconfig a partir do secret
+        run: echo "${KUBECTL_CONFIG}" > ~/.kube/config
+        env:
+          KUBECTL_CONFIG: ${{ secrets.KUBECTL_CONFIG }}
+  
+      - run: chmod 600 ~/.kube/config
+  
+      - uses: actions/checkout@v4
+  
+      - uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+  
+      - name: Verificar cluster
         run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets.KUBECTL_CONFIG }}" > ~/.kube/config
+          kubectl config get-contexts
+          kubectl get nodes
 
-      - name: Cleanup Old Resources
-        run: |
-          kubectl delete deployment servicos-publicos-api || true
-          kubectl delete deployment servicos-publicos-mongodb || true
-          kubectl delete configmap cservicos-publicos-mongodb-config || true
-          kubectl delete configmap cservicos-publicos-api-config || true
+      - name: Remover deployment anterior
+        run: kubectl delete deployment personal-finance-api || true
 
-      - name: Apply ConfigMaps
-        run: |
-          kubectl apply -f deploy/config-maps/servicos-publicos-mongo-config.yaml
-          kubectl apply -f deploy/config-maps/servicos-publicos-api-config.yaml
+      - name: Aplicar novo deployment
+        run: kubectl apply -f deploy/personal-finance-api-deployment.yaml
 
-      - name: Deploy MongoDB
-        run: |
-          kubectl apply -f deploy/deployments/servicos-publicos-mongodb.yaml
-          kubectl rollout status deployment/servicos-publicos-mongodb
+      - name: Aguardar rollout do deployment
+        run: kubectl rollout status deployment/personal-finance-api --timeout=90s
 
-      - name: Deploy API
-        run: |
-          kubectl apply -f deploy/deployments/servicos-publicos-api.yaml
-          kubectl rollout status deployment/servicos-publicos-api
-
-      - name: Verify Deployment
+      - name: Verificar status do deployment
         run: |
           kubectl get pods
-          kubectl describe deploy/servicos-publicos-api
-          kubectl logs deploy/servicos-publicos-api
+          kubectl describe deploy/personal-finance-api
+          kubectl logs deploy/personal-finance-api
