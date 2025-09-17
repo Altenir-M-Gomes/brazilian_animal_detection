@@ -66,16 +66,16 @@ jobs:
           kubectl get nodes
 
       - name: Remover deployment anterior
-        run: kubectl delete deployment personal-finance-api || true
+        run: kubectl delete deployment deteccao-animais || true
 
       - name: Aplicar novo deployment
-        run: kubectl apply -f deploy/personal-finance-api-deployment.yaml
+        run: kubectl apply -f deploy/deteccao-animais-api.yaml
 
       - name: Aguardar rollout do deployment
-        run: kubectl rollout status deployment/personal-finance-api --timeout=90s
+        run: kubectl rollout status deployment/deteccao-animais-api --timeout=90s
 
       - name: Verificar status do deployment
         run: |
           kubectl get pods
-          kubectl describe deploy/personal-finance-api
-          kubectl logs deploy/personal-finance-api
+          kubectl describe deploy/deteccao-animais-api
+          kubectl logs deploy/deteccao-animais-api

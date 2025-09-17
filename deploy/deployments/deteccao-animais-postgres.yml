@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: deteccao-animais-postgres
+spec:
+  resources:
+    requests:
+      storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deteccao-animais-postgres
+spec:
+  selector:
+    matchLabels:
+      app: deteccao-animais-postgres
+  template:
+    metadata:
+      labels:
+        app: deteccao-animais-postgres
+    spec:
+      containers:
+        - name: deteccao-animais-postgres
+          image: postgres:latest
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: cservicos-publicos-postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: pv
+          env:
+            - name: TZ
+              value: "America/Porto_Velho"
+            - name: LANG
+              value: "pt_BR.UTF-8"
+      volumes:
+        - name: pv
+          persistentVolumeClaim:
+            claimName: deteccao-animais-postgres
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deteccao-animais-postgres
+spec:
+  type: ClusterIP
+  selector:
+    app: deteccao-animais-postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
