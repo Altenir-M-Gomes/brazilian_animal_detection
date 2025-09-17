@@ -64,6 +64,8 @@ jobs:
         run: |
           kubectl config get-contexts
           kubectl get nodes
+          kubectl get pods
+          kubectl get configmaps
 
       - name: Remover deployment anterior
         run: kubectl delete deployment deteccao-animais || true
