@@ -30,7 +30,9 @@ jobs:
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> backend/.env
 
       - name: Build Docker Image
-        run: docker build -t $IMAGE_NAME ./backend
+        run: |
+          ls -la
+          docker build -t $IMAGE_NAME ./backend
 
       - name: Push Docker Image
         run: docker push $IMAGE_NAME
