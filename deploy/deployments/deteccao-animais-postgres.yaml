@@ -30,7 +30,7 @@ spec:
             - containerPort: 5432
           envFrom:
             - configMapRef:
-                name: cservicos-publicos-postgres-config
+                name: csdeteccao-postgres-config
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: pv

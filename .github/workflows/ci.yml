@@ -67,8 +67,11 @@ jobs:
           kubectl get pods
           kubectl get configmaps
 
-      - name: Remover deployment anterior
-        run: kubectl delete deployment deteccao-animais || true
+      - name: Remover deployments/configmaps anteriores
+        run: |
+          kubectl delete deployment deteccao-animais || true
+          kubectl delete deployment deteccao-animais-postgres || true
+          kubectl delete configmap csdeteccao-postgres-config || true
       
       - name: Aplicar Postgres
         run: kubectl apply -f deploy/deployments/deteccao-animais-postgres.yaml

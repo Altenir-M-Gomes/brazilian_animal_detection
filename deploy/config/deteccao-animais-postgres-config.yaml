@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cservicos-deteccao-postgres-config
+  name: csdeteccao-postgres-config
 data:
   POSTGRES_USER: "root"
   POSTGRES_PASSWORD: "example"
