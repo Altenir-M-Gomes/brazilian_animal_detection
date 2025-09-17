@@ -69,8 +69,11 @@ jobs:
 
       - name: Remover deployment anterior
         run: kubectl delete deployment deteccao-animais || true
+      
+      - name: Aplicar Postgres
+        run: kubectl apply -f deploy/deployments/deteccao-animais-postgres.yaml
 
-      - name: Aplicar novo deployment
+      - name: Aplicar novo deployment da api
         run: kubectl apply -f deploy/deployments/deteccao-animais-api.yaml
 
       - name: Aguardar rollout do deployment
@@ -81,3 +84,6 @@ jobs:
           kubectl get pods
           kubectl describe deploy/deteccao-animais-api
           kubectl logs deploy/deteccao-animais-api
+          kubectl describe deploy/deteccao-animais-postgres
+          kubectl logs deploy/deteccao-animais-postgres
+

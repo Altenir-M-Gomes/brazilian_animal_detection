@@ -19,9 +19,6 @@ spec:
           image: altenirm/deteao-de-animais:latest
           ports:
             - containerPort: 8000   
-          envFrom:
-            - configMapRef:
-                name: deteccao-animais-api-config
           resources: {}
 
 ---

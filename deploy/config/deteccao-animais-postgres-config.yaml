@@ -5,4 +5,4 @@ metadata:
 data:
   POSTGRES_USER: "root"
   POSTGRES_PASSWORD: "example"
-  POSTGRES_DB: "admin"
+  POSTGRES_DB: "brazilian_animals_db"
