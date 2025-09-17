@@ -72,6 +72,8 @@ jobs:
           kubectl delete deployment deteccao-animais || true
           kubectl delete deployment deteccao-animais-postgres || true
           kubectl delete configmap csdeteccao-postgres-config || true
+      - name: Aplicar configmap do postgres
+        run: kubectl apply -f deploy/config/deteccao-animais-postgres-config.yaml
       
       - name: Aplicar Postgres
         run: kubectl apply -f deploy/deployments/deteccao-animais-postgres.yaml
