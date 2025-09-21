@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copiar lista de dependências
 COPY requirements.txt .
+COPY .env.example .env
 
 # Atualizar pip e instalar pacotes
 RUN pip install --upgrade pip setuptools wheel \
