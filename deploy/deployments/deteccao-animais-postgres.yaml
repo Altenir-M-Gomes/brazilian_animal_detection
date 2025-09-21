@@ -3,11 +3,11 @@ kind: PersistentVolumeClaim
 metadata:
   name: deteccao-animais-postgres
 spec:
-  accessModes:
-    - ReadWriteOnce
   resources:
     requests:
       storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
 
 ---
 apiVersion: apps/v1
@@ -15,7 +15,6 @@ kind: Deployment
 metadata:
   name: deteccao-animais-postgres
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: deteccao-animais-postgres
@@ -26,47 +25,22 @@ spec:
     spec:
       containers:
         - name: deteccao-animais-postgres
-          image: postgres:17.6
+          image: postgres:latest
           ports:
             - containerPort: 5432
+          envFrom:
+            - configMapRef:
+                name: csdeteccao-postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: pv
           env:
-            - name: POSTGRES_DB
-              value: "nome_do_banco"
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: csdeteccao-postgres-secrets
-                  key: POSTGRES_USER
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: csdeteccao-postgres-secrets
-                  key: POSTGRES_PASSWORD
             - name: TZ
               value: "America/Porto_Velho"
             - name: LANG
               value: "en_US.UTF-8"
             - name: LC_ALL
               value: "en_US.UTF-8"
-          volumeMounts:
-            - mountPath: /var/lib/postgresql/data
-              name: pv
-          readinessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - "$(POSTGRES_USER)"
-            initialDelaySeconds: 5
-            periodSeconds: 10
-          livenessProbe:
-            exec:
-              command:
-                - pg_isready
-                - -U
-                - "$(POSTGRES_USER)"
-            initialDelaySeconds: 15
-            periodSeconds: 20
       volumes:
         - name: pv
           persistentVolumeClaim:
