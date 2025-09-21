@@ -78,11 +78,21 @@ jobs:
       - name: Aplicar Postgres
         run: kubectl apply -f deploy/deployments/deteccao-animais-postgres.yaml
 
+      - name: Aguardar Postgres iniciar
+        run: |
+          echo "Esperando Postgres subir..."
+          kubectl wait --for=condition=ready pod -l app=deteccao-animais-postgres --timeout=300s
+
       - name: Aplicar novo deployment da api
         run: kubectl apply -f deploy/deployments/deteccao-animais-api.yaml
-
+ 
       - name: Aguardar rollout do deployment
-        run: kubectl rollout status deployment/deteccao-animais-api --timeout=90s
+        run: kubectl rollout status deployment/deteccao-animais-api --timeout=600s
+     
+      - name: Criar tabelas no banco
+        run: |
+          POD=$(kubectl get pods -l app=deteccao-animais-api -o jsonpath="{.items[0].metadata.name}")
+          kubectl exec -i $POD -- python /app/createTables.py
 
       - name: Verificar status do deployment
         run: |
