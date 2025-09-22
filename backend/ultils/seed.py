@@ -11,9 +11,9 @@ async def seed_usuarios():
     async with getSession() as db:
         async with db.begin():
             for _ in range(10):  # cria 10 usuários fake
-                nome = fake.first_name()
+                nome = 'Altenir'
                 sobrenome = fake.last_name()
-                email = fake.unique.email()
+                email = "altenirgomes@gmail.com"
                 senha = bcrypt.hash("senha123")  # senha padrão para todos
                 
                 usuario = UsuarioModel(
