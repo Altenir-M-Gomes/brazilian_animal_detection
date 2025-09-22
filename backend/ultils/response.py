@@ -14,7 +14,7 @@ http_messages = {
     500: "Internal Server Error",
 }
 
-def send_response(
+def sendResponse(
     data: Any = None,
     code: int = status.HTTP_200_OK,
     message: str = None,
@@ -32,7 +32,7 @@ def send_response(
     }
     return JSONResponse(status_code=code, content=payload)
 
-def send_error(
+def sendError(
     code: int = status.HTTP_400_BAD_REQUEST,
     errors: Union[str, Dict[str, Any], List[Dict[str, Any]]] = None
 ) -> JSONResponse:
