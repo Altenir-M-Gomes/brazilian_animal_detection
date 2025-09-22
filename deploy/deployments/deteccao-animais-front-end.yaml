@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deteccao-front
+spec:
+  selector:
+    matchLabels:
+      app: deteccao-front
+  template:
+    metadata:
+      labels:
+        app: estacoes-front
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+      - name: deteccao-front
+        image: altenirm/deteccao-front-end:latest
+        resources: {}
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deteccao-front
+spec:
+  type: ClusterIP
+  selector:
+    app: deteccao-front
+  ports:
+  - port: 80
+    targetPort: 3000
