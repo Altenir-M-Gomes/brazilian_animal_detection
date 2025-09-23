@@ -13,7 +13,7 @@ import PrevisaoScreen from "./pages/previsao";
 import { ToastContainer } from "react-toastify";
 import CadastrarPage from "./pages/cadastrar";
 import { requireAuthLoader } from "./loaders/requireAuthLoader";
-
+import VerificarConta from "./pages/verificarConta";
 function NotFound() {
   return <h1>404 - Página não encontrada</h1>;
 }
@@ -45,7 +45,11 @@ const router = createBrowserRouter([
         element: <CadastrarPage />,
       },
       {
-        path: "*", // fallback 404
+        path: "/verificar-conta",
+        element: <VerificarConta />,
+      },
+      {
+        path: "*",
         element: <NotFound />,
       },
     ],

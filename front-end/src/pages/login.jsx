@@ -19,7 +19,6 @@ export default function LoginPage() {
   const onSubmit = async (data) => {
     
     try {
-      console.log(`${import.meta.env.VITE_API_URL}/auth/login`);
       
       const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
         method: "POST",
@@ -36,7 +35,6 @@ export default function LoginPage() {
       toast.success("Login realizado com sucesso!");
       window.location.href = "/previsao"; 
     } catch (err) {
-      console.log(err);
       
       toast.error(err.message || "Erro ao fazer login");
     }
