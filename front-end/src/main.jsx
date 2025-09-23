@@ -4,6 +4,7 @@ import {
   createBrowserRouter,
   Outlet,
   RouterProvider,
+  Navigate,
 } from "react-router-dom";
 import "./index.css";
 import { AuthProvider } from "./context/AuthContext";
@@ -13,6 +14,10 @@ import { ToastContainer } from "react-toastify";
 import CadastrarPage from "./pages/cadastrar";
 import { requireAuthLoader } from "./loaders/requireAuthLoader";
 
+function NotFound() {
+  return <h1>404 - Página não encontrada</h1>;
+}
+
 const router = createBrowserRouter([
   {
     element: (
@@ -20,7 +25,12 @@ const router = createBrowserRouter([
         <Outlet />
       </AuthProvider>
     ),
+    errorElement: <NotFound />, 
     children: [
+      {
+        path: "/",
+        element: <Navigate to="/login" replace />, 
+      },
       {
         path: "/login",
         element: <Login />,
@@ -28,14 +38,16 @@ const router = createBrowserRouter([
       {
         path: "/previsao",
         element: <PrevisaoScreen />,
-        loader: requireAuthLoader
-
+        loader: requireAuthLoader,
       },
-       {
+      {
         path: "/cadastrar",
         element: <CadastrarPage />,
       },
-    
+      {
+        path: "*", // fallback 404
+        element: <NotFound />,
+      },
     ],
   },
 ]);
