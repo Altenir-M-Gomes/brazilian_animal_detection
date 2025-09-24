@@ -9,7 +9,7 @@ spec:
   template:
     metadata:
       labels:
-        app: estacoes-front
+        app: deteccao-front
     spec:
       imagePullSecrets:
       - name: regcred
