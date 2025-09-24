@@ -12,6 +12,7 @@ jobs:
     environment: "Brazilian animais" 
     env:
       IMAGE_NAME: altenirm/deteao-de-animais:latest
+      IMAGE_NAME_FRONT: altenirm/deteccao-front-end:latest
 
     steps:
       - uses: actions/checkout@v4
@@ -37,10 +38,32 @@ jobs:
 
       - name: Push Docker Image
         run: docker push $IMAGE_NAME
+  
+  buildar-docker-front:
+    runs-on: ubuntu-latest
+    environment: "Brazilian animais"
+    env:
+      IMAGE_NAME: altenirm/deteao-de-animais-front:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Image Frontend
+        run: docker build -t $IMAGE_NAME_FRONT ./front-end
+
+      - name: Push Docker Image Frontend
+        run: docker push $IMAGE_NAME_FRONT
 
   fazer-deploy:
     runs-on: ubuntu-latest
-    needs: buildar-docker-api
+    needs: [ buildar-docker-api, buildar-docker-front ]
     environment: "Brazilian animais" 
 
     steps:
@@ -70,8 +93,10 @@ jobs:
       - name: Remover deployments/configmaps anteriores
         run: |
           kubectl delete deployment deteccao-animais-api || true
+          kubectl delete deployment deteccao-animais-front-end || true
           kubectl delete deployment deteccao-animais-postgres || true
           kubectl delete configmap csdeteccao-postgres-config || true
+
       - name: Aplicar configmap do postgres
         run: kubectl apply -f deploy/config/deteccao-animais-postgres-config.yaml
       
@@ -85,9 +110,15 @@ jobs:
 
       - name: Aplicar novo deployment da api
         run: kubectl apply -f deploy/deployments/deteccao-animais-api.yaml
+
+      - name: Aplicar novo deployment do front
+        run: kubectl apply -f deploy/deployments/deteccao-animais-front-end.yaml
  
-      - name: Aguardar rollout do deployment
+      - name: Aguardar rollout do deployment API
         run: kubectl rollout status deployment/deteccao-animais-api --timeout=600s
+
+      - name: Aguardar rollout do deployment Front
+        run: kubectl rollout status deployment/deteccao-animais-front-end --timeout=600s
      
       - name: Criar tabelas no banco
         run: |
@@ -95,12 +126,12 @@ jobs:
           kubectl exec -i $POD -- python -m ultils.createTables
           kubectl exec -i $POD -- python -m ultils.seed
 
-
       - name: Verificar status do deployment
         run: |
           kubectl get pods
           kubectl describe deploy/deteccao-animais-api
           kubectl logs deploy/deteccao-animais-api
+          kubectl describe deploy/deteccao-animais-front-end
+          kubectl logs deploy/deteccao-animais-front-end
           kubectl describe deploy/deteccao-animais-postgres
           kubectl logs deploy/deteccao-animais-postgres
-
