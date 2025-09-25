@@ -92,7 +92,7 @@ jobs:
       - name: Remover deployments/configmaps anteriores
         run: |
           kubectl delete deployment deteccao-animais-api || true
-          kubectl delete deployment deteccao-animais-front-end || true
+          kubectl delete deployment deteccao-front || true
           kubectl delete deployment deteccao-animais-postgres || true
           kubectl delete configmap csdeteccao-postgres-config || true
 
@@ -117,7 +117,7 @@ jobs:
         run: kubectl rollout status deployment/deteccao-animais-api --timeout=600s
 
       - name: Aguardar rollout do deployment Front
-        run: kubectl rollout status deployment/deteccao-animais-front-end --timeout=600s
+        run: kubectl rollout status deployment/deteccao-front --timeout=600s
      
       - name: Criar tabelas no banco
         run: |
