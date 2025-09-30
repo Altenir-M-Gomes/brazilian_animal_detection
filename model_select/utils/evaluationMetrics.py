@@ -5,7 +5,6 @@ from torch.utils.data import DataLoader
 import torch
 from typing import Tuple
 import numpy as np
-from .evalutaionDataClass import EvaluationDataClass
 from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
@@ -15,89 +14,180 @@ from sklearn.metrics import (
     roc_auc_score,
     classification_report
 )
-
+from typing import List
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+from functools import wraps
+import numpy as np
+from matplotlib.figure import Figure
 
 
 class Metrics:
-    def __init__(self, model: nn.Module, device: torch.device, test_data: DataLoader, outPutDim: int = 2):
+
+    def erroWrapper(func):
+        @wraps(func)
+        def inner(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                print(f"[WARNING] {func.__name__} falhou: {e}")
+                return None
+        return inner
+
+    
+    def __init__(self, model: nn.Module, device: torch.device, testDate: DataLoader, outPutDim: int = 2):
+        # TODO: criar um style global para as figs
+
         self.model = model
         self.device = device
-        self.data = test_data
+        self.data = testDate
         self.outPutDim = outPutDim
-        self.y_pred = np.zeros(0, dtype=int)
-        self.y_true = np.zeros(0, dtype=int)
-        self.y_score = np.zeros(0, dtype=int)
         
-    def trainTestData(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        y_pred = np.zeros(0, dtype=int)
-        y_true = np.zeros(0, dtype=int)
-        y_score = np.empty((0, self.outPutDim))
+        yPred, yTrue, yScore = self._trainTestData()
 
-        self.model.eval()  # garante que usamos o modelo atualizado em modo eval
+        self.yTrue = yTrue
+        self.yPred = yPred
+        self.yScore = yScore
+
+    def _trainTestData(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        yPred = np.zeros(0, dtype=int)
+        yTrue = np.zeros(0, dtype=int)
+        yScore = np.empty((0, self.outPutDim))
+
+        self.model.eval()  
         with torch.no_grad():
             for images_batch, labels_batch in self.data:
                 images_batch = images_batch.to(self.device)
 
                 scores = self.model(images_batch)
-                _, y_pred_batch = scores.max(1)
+                _, yPredBatch = scores.max(1)
 
-                y_pred_batch = y_pred_batch.cpu().numpy()
+                yPredBatch = yPredBatch.cpu().numpy()
                 labels_batch = labels_batch.numpy()
-                y_score_batch = torch.softmax(scores, dim=1).cpu().numpy()
+                yScoreBatch = torch.softmax(scores, dim=1).cpu().numpy()
 
-                y_pred = np.concatenate((y_pred, y_pred_batch))
-                y_true = np.concatenate((y_true, labels_batch))
-                y_score = np.concatenate((y_score, y_score_batch))
+                yPred = np.concatenate((yPred, yPredBatch))
+                yTrue = np.concatenate((yTrue, labels_batch))
+                yScore = np.concatenate((yScore, yScoreBatch))
 
-        self.y_pred = y_pred
-        self.y_true = y_true
-        self.y_score = y_score
-        return y_pred, y_true, y_score
+        return yPred, yTrue, yScore
 
-            
-    def getAccuracy(self) -> float:
-        '''
-            Evaluate the model's performance on the test data and print a classification report.
-
-            Arguments:
-            - test_data: a DataLoader containing the test dataset.
-            - model: the trained model to evaluate.
-        '''
+    @erroWrapper       
+    def _getAccuracy(self) -> float:
         return accuracy_score(self.y_true, self.y_pred)
+    
+    @erroWrapper       
 
-    def getPrecision(self) -> float:
+    def _getPrecision(self) -> float:
         return precision_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
-
-    def getRecall(self) -> float:
+    
+    @erroWrapper       
+    def _getRecall(self) -> float:
         return recall_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
-
-    def getF1Score(self) -> float:
+    
+    @erroWrapper       
+    def _getF1Score(self) -> float:
         return f1_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
     
-    def getConfusionMatrix(self) -> np.ndarray:
+    @erroWrapper       
+    def _getConfusionMatrix(self) -> np.ndarray:
         return confusion_matrix(self.y_true, self.y_pred)
-
-    def getAuroc(self) -> float:
-        
-        try:
-            return roc_auc_score(self.y_true, self.y_score, multi_class='ovr', average='weighted')
-        except ValueError:
-            return 0.0
-    def classificationReport(self) -> str | dict:
+    
+    @erroWrapper       
+    def _getAuroc(self) -> float:
+        return roc_auc_score(self.y_true, self.y_score, multi_class='ovr', average='weighted')
+    
+    @erroWrapper       
+    def _classificationReport(self) -> str | dict:
         return classification_report(self.y_true, self.y_pred)
     
-    def colectMetrics(self) -> EvaluationDataClass:
-        y_pred, y_true, y_score = self.trainTestData()
+    def __str__(self) -> str:
+        self._trainTestData()
 
-        return EvaluationDataClass(
-            accuracy=self.getAccuracy(), 
-            classification_report=self.classificationReport(),
-            precision=self.getPrecision(),
-            auroc=self.getAuroc(),  
-            confusion_matrix=self.getConfusionMatrix(), 
-            f1_score=self.getF1Score(), 
-            recall=self.getRecall(),
-            y_pred=y_pred, 
-            y_score=y_score,
-            y_true=y_true 
-            )
+        return (
+            f"📊 Evaluation Results\n"
+            f"---------------------------\n"
+            f"Accuracy:   {self._getAccuracy():.4f}\n"
+            f"Precision:  {self._getPrecision():.4f}\n"
+            f"Recall:     {self._getRecall():.4f}\n"
+            f"F1 Score:   {self._getF1Score():.4f}\n"
+            f"AUROC:      {self._getAuroc():.4f}\n\n"
+            f"Confusion Matrix:\n{self._getConfusionMatrix()}\n\n"
+            f"Classification Report:\n{self._classificationReport()}\n"
+        )
+
+    # TODO: retornar as figuras ao invés de mostrar
+    # TODO: salvar as fig caso o parametro de save seja true
+
+    def saveMetrics(plot:plt.Figure, path: str, name: str = "imagem", type: str = "png") -> None:
+        os.makedirs(path, exist_ok=True)
+        plot.savefig(os.path.join(path, f"{name}.{type}"), format=type, bbox_inches='tight')
+        plt.close(plot)
+        
+    def plotAccuracy(self, path: str = "figures") -> Figure:
+        fig, ax = plt.subplots()
+        ax.plot(self.accuracies, marker='o')
+        ax.set_title("Accuracy por Geração")
+        ax.set_xlabel("Geração")
+        ax.set_ylabel("Accuracy")
+        ax.grid(True)
+
+        if self.saveFig:
+            self.saveMetrics(fig, path, name="accuracy")
+
+        return fig
+
+    def plotAuroc(self, path: str = "figures"):
+        fig, ax = plt.subplots()
+        ax.plot(self.aurocs, marker='o', color='orange')
+        ax.set_title("AUROC por Geração")
+        ax.set_xlabel("Geração")
+        ax.set_ylabel("AUROC")
+        ax.grid(True)
+
+        if self.saveFig:
+            self.saveMetrics(fig, path, name="auroc")
+        
+        plt.show()
+
+    def plotConfusionMatrixLast(self, path: str = "figures"):
+        cm = self.confusion_matrices[-1]
+        fig, ax = plt.subplots(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
+        ax.set_title("Matriz de Confusão - Última Geração")
+        ax.set_xlabel("Predito")
+        ax.set_ylabel("Real")
+
+        if self.saveFig:
+            self.saveMetrics(fig, path, name="confusion_matrix")
+        
+        plt.show()
+
+    def plotPrecision(self):
+        plt.plot(self.precisions, marker='o', color='green')
+        plt.title("Precision por Geração")
+        plt.xlabel("Geração")
+        plt.ylabel("Precision")
+        plt.grid(True)
+        plt.show()
+
+    def plotRecall(self):
+        plt.plot(self.recalls, marker='o', color='purple')
+        plt.title("Recall por Geração")
+        plt.xlabel("Geração")
+        plt.ylabel("Recall")
+        plt.grid(True)
+        plt.show()
+
+    def plotF1Score(self):
+        plt.plot(self.f1_scores, marker='o', color='red')
+        plt.title("F1 Score por Geração")
+        plt.xlabel("Geração")
+        plt.ylabel("F1 Score")
+        plt.grid(True)
+        plt.show()
+
+    def reset(self):
+        self.__init__()

@@ -2,7 +2,7 @@ from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from .evalutaionDataClass import EvaluationDataClass
+from .models.evalutaionDataClass import EvaluationDataClass
 import os
 
 class EvaluationState:

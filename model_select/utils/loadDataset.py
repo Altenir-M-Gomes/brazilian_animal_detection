@@ -2,7 +2,7 @@
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.utils import save_image
-from .customDataset import CustomDataset
+from .ImageDataset import ImageDataset
 
 class TrainDatasetImplemetation:
     
@@ -52,7 +52,7 @@ class TrainDatasetImplemetation:
             self.to_tensor
         ])
         
-        train_dataset = CustomDataset(self.train_dataset_path, transforms=transforms_train)
+        train_dataset = ImageDataset(self.train_dataset_path, transforms=transforms_train)
         print("no of samples in train dataset", len(train_dataset))
 
         train_loader = DataLoader(
@@ -73,7 +73,7 @@ class TrainDatasetImplemetation:
             self.to_tensor
         ])
         
-        test_dataset = CustomDataset(self.test_dataset_path, transforms=transforms_test)
+        test_dataset = ImageDataset(self.test_dataset_path, transforms=transforms_test)
         print("no of samples in test dataset", len(test_dataset))
 
         test_loader = DataLoader(
