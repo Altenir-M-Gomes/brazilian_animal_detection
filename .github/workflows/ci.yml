@@ -117,7 +117,7 @@ jobs:
         run: kubectl rollout status deployment/deteccao-animais-api --timeout=600s
 
       - name: Aguardar rollout do deployment Front
-        run: kubectl rollout status deployment/deteccao-animais-front-end --timeout=600s
+        run: kubectl rollout status deployment/deteccao-front --timeout=600s
      
       - name: Criar tabelas no banco
         run: |
@@ -130,7 +130,7 @@ jobs:
           kubectl get pods
           kubectl describe deploy/deteccao-animais-api
           kubectl logs deploy/deteccao-animais-api
-          kubectl describe deploy/deteccao-animais-front-end
-          kubectl logs deploy/deteccao-animais-front-end
+          kubectl describe deploy/deteccao-front
+          kubectl logs deploy/deteccao-front
           kubectl describe deploy/deteccao-animais-postgres
           kubectl logs deploy/deteccao-animais-postgres
