@@ -92,7 +92,7 @@ jobs:
       - name: Remover deployments/configmaps anteriores
         run: |
           kubectl delete deployment deteccao-animais-api || true
-          kubectl delete deployment deteccao-animais-front-end || true
+          kubectl delete deployment deteccao-front || true
           kubectl delete deployment deteccao-animais-postgres || true
           kubectl delete configmap csdeteccao-postgres-config || true
 
