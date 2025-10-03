@@ -14,7 +14,6 @@ from sklearn.metrics import (
     roc_auc_score,
     classification_report
 )
-from typing import List
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -22,6 +21,7 @@ import os
 from functools import wraps
 import numpy as np
 from matplotlib.figure import Figure
+import seaborn as sns
 
 
 class Metrics:
@@ -36,22 +36,24 @@ class Metrics:
                 return None
         return inner
 
-    
-    def __init__(self, model: nn.Module, device: torch.device, testDate: DataLoader, outPutDim: int = 2):
-        # TODO: criar um style global para as figs
 
+    def __init__(self, model: nn.Module, device: torch.device, testDate: DataLoader, outPutDim: int = 2, savePathFigs: str = "/figures", saveFig: bool = False):
+        
+        self.savePathFigs = savePathFigs
+        self.saveFig = saveFig
+        self.figNumber = 0
         self.model = model
         self.device = device
         self.data = testDate
         self.outPutDim = outPutDim
-        
-        yPred, yTrue, yScore = self._trainTestData()
 
-        self.yTrue = yTrue
-        self.yPred = yPred
-        self.yScore = yScore
+        self.yTrue = []
+        self.yPred = []
+        self.yScore = []
 
-    def _trainTestData(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+    def trainTestData(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        self.figNumber += 1
         yPred = np.zeros(0, dtype=int)
         yTrue = np.zeros(0, dtype=int)
         yScore = np.empty((0, self.outPutDim))
@@ -72,7 +74,12 @@ class Metrics:
                 yTrue = np.concatenate((yTrue, labels_batch))
                 yScore = np.concatenate((yScore, yScoreBatch))
 
+        self.yPred = yPred
+        self.yTrue = yTrue
+        self.yScore = yScore
+
         return yPred, yTrue, yScore
+
 
     @erroWrapper       
     def _getAccuracy(self) -> float:
@@ -104,7 +111,6 @@ class Metrics:
         return classification_report(self.y_true, self.y_pred)
     
     def __str__(self) -> str:
-        self._trainTestData()
 
         return (
             f"📊 Evaluation Results\n"
@@ -117,16 +123,19 @@ class Metrics:
             f"Confusion Matrix:\n{self._getConfusionMatrix()}\n\n"
             f"Classification Report:\n{self._classificationReport()}\n"
         )
+    
 
-    # TODO: retornar as figuras ao invés de mostrar
-    # TODO: salvar as fig caso o parametro de save seja true
-
-    def saveMetrics(plot:plt.Figure, path: str, name: str = "imagem", type: str = "png") -> None:
+    def saveMetrics(plot: Figure, path: str, name: str = "imagem", figNumber: int = 0, type: str = "png") -> None:
         os.makedirs(path, exist_ok=True)
-        plot.savefig(os.path.join(path, f"{name}.{type}"), format=type, bbox_inches='tight')
+
+        filename = f"{name}_epoch{figNumber}.{type}"
+       
+
+        plot.savefig(os.path.join(path, filename), format=type, bbox_inches='tight')
         plt.close(plot)
+
         
-    def plotAccuracy(self, path: str = "figures") -> Figure:
+    def _plotAccuracy(self) -> Figure:
         fig, ax = plt.subplots()
         ax.plot(self.accuracies, marker='o')
         ax.set_title("Accuracy por Geração")
@@ -135,11 +144,11 @@ class Metrics:
         ax.grid(True)
 
         if self.saveFig:
-            self.saveMetrics(fig, path, name="accuracy")
+            self.saveMetrics(fig, path=self.savePathFigs, name="accuracy", figNumber=self.figNumber)
 
         return fig
-
-    def plotAuroc(self, path: str = "figures"):
+    
+    def _plotAuroc(self) -> Figure:
         fig, ax = plt.subplots()
         ax.plot(self.aurocs, marker='o', color='orange')
         ax.set_title("AUROC por Geração")
@@ -148,11 +157,53 @@ class Metrics:
         ax.grid(True)
 
         if self.saveFig:
-            self.saveMetrics(fig, path, name="auroc")
-        
-        plt.show()
+            self.saveMetrics(fig, path=self.savePathFigs, name="auroc", figNumber=self.figNumber)
 
-    def plotConfusionMatrixLast(self, path: str = "figures"):
+        return fig
+
+    def _plotPrecision(self) -> Figure:
+        fig, ax = plt.subplots()
+        ax.plot(self.precisions, marker='o', color='green')
+        ax.set_title("Precision por Geração")
+        ax.set_xlabel("Geração")
+        ax.set_ylabel("Precision")
+        ax.grid(True)
+
+        if self.saveFig:
+            self.saveMetrics(fig, path=self.savePathFigs, name="precision", figNumber=self.figNumber)
+
+        plt.show()
+        return fig
+
+
+    def _plotRecall(self) -> Figure:
+        fig, ax = plt.subplots()
+        ax.plot(self.recalls, marker='o', color='purple')
+        ax.set_title("Recall por Geração")
+        ax.set_xlabel("Geração")
+        ax.set_ylabel("Recall")
+        ax.grid(True)
+
+        if self.saveFig:
+            self.saveMetrics(fig, path=self.savePathFigs, name="recall", figNumber=self.figNumber)
+
+        return fig
+
+
+    def _plotF1Score(self) -> Figure:
+        fig, ax = plt.subplots()
+        ax.plot(self.f1_scores, marker='o', color='red')
+        ax.set_title("F1 Score por Geração")
+        ax.set_xlabel("Geração")
+        ax.set_ylabel("F1 Score")
+        ax.grid(True)
+
+        if self.saveFig:
+            self.saveMetrics(fig, path=self.savePathFigs, name="f1_score", figNumber=self.figNumber)
+
+        return fig
+
+    def _plotConfusionMatrixt(self) -> Figure:
         cm = self.confusion_matrices[-1]
         fig, ax = plt.subplots(figsize=(6, 5))
         sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
@@ -161,33 +212,28 @@ class Metrics:
         ax.set_ylabel("Real")
 
         if self.saveFig:
-            self.saveMetrics(fig, path, name="confusion_matrix")
-        
-        plt.show()
+            self.saveMetrics(fig, path=self.savePathFigs, name="confusion_matrix", figNumber=self.figNumber)
 
-    def plotPrecision(self):
-        plt.plot(self.precisions, marker='o', color='green')
-        plt.title("Precision por Geração")
-        plt.xlabel("Geração")
-        plt.ylabel("Precision")
-        plt.grid(True)
         plt.show()
+        return fig
 
-    def plotRecall(self):
-        plt.plot(self.recalls, marker='o', color='purple')
-        plt.title("Recall por Geração")
-        plt.xlabel("Geração")
-        plt.ylabel("Recall")
-        plt.grid(True)
-        plt.show()
+    def showAll(self) -> None:
 
-    def plotF1Score(self):
-        plt.plot(self.f1_scores, marker='o', color='red')
-        plt.title("F1 Score por Geração")
-        plt.xlabel("Geração")
-        plt.ylabel("F1 Score")
-        plt.grid(True)
-        plt.show()
+        """
+        Exibe todos os gráficos (AUROC, Matriz de Confusão, Precision, Recall e F1).
+        Se self.saveFig = True, cada gráfico será salvo com nome + epoch.
+        """
+        fig1 = self._plotAuroc()
+        plt.show(fig1)
 
-    def reset(self):
-        self.__init__()
+        fig2 = self._plotConfusionMatrixt()
+        plt.show(fig2)
+
+        fig3 = self._plotPrecision()
+        plt.show(fig3)
+
+        fig4 = self._plotRecall()
+        plt.show(fig4)
+
+        fig5 = self._plotF1Score()
+        plt.show(fig5)
