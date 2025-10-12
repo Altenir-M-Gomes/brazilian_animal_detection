@@ -15,8 +15,7 @@ async def seedUsuario() -> None:
         async with db.begin():
             try:
                 usuario = UsuarioModel(
-                    nome="Altenir",
-                sobrenome="Modesto Gomes",
+                    nome="Altenir Modesto Gomes",
                 email="altenirgomes@gmail.com",
                 senha=bcrypt.hash("senha123"),
                 ativo=True

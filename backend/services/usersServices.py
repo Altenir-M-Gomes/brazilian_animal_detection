@@ -59,7 +59,6 @@ class UserService:
         
         newUser = UsuarioModel(
             nome=user.nome,
-            sobrenome=user.sobrenome,
             email=user.email,
             senha=createHashPassword(user.senha),
         )
@@ -190,8 +189,6 @@ class UserService:
         data = {}
         if user.nome is not None:
             data["nome"] = user.nome
-        if user.sobrenome is not None:
-            data["sobrenome"] = user.sobrenome
         if user.email is not None:
             data["email"] = user.email
         if user.senha is not None:

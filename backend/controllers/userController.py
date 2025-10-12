@@ -29,7 +29,6 @@ class UserController:
         return {
             "id": newUser.id,
             "nome": newUser.nome,
-            "sobrenome": newUser.sobrenome,
             "email": newUser.email,
             "ativo": newUser.ativo
         }

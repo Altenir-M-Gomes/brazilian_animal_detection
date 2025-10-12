@@ -40,7 +40,6 @@ class TokenVerifedSchema(BaseModel):
                 "user":{
                     "id": 1,
                     "nome": "Altenir",
-                    "sobrenome": "Modesto Gomes",
                     "email": "altenirgomesmodesto@gmail.com",
                     "ativo": False
                 },
