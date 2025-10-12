@@ -2,9 +2,7 @@ import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-import torch
 from typing import Tuple
-import numpy as np
 from sklearn.metrics import (
     accuracy_score,
     confusion_matrix,
@@ -14,14 +12,10 @@ from sklearn.metrics import (
     roc_auc_score,
     classification_report
 )
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 from functools import wraps
-import numpy as np
-from matplotlib.figure import Figure
-import seaborn as sns
 
 
 class Metrics:
@@ -36,9 +30,17 @@ class Metrics:
                 return None
         return inner
 
-
-    def __init__(self, model: nn.Module, device: torch.device, testDate: DataLoader, outPutDim: int = 2, savePathFigs: str = "/figures", saveFig: bool = False):
-        
+    def __init__(
+        self,
+        model: nn.Module,
+        device: torch.device,
+        testDate: DataLoader,
+        outPutDim: int = 2,
+        savePathFigs: str = "/figures",
+        saveFig: bool = False,
+        nameModel: str = "unknown",
+    ):
+        self.nameModel = nameModel
         self.savePathFigs = savePathFigs
         self.saveFig = saveFig
         self.figNumber = 0
@@ -46,11 +48,16 @@ class Metrics:
         self.device = device
         self.data = testDate
         self.outPutDim = outPutDim
+        
+        self.yTrue = np.zeros(0, dtype=int)
+        self.yPred = np.zeros(0, dtype=int)
+        self.yScore = np.empty((0, outPutDim))
 
-        self.yTrue = []
-        self.yPred = []
-        self.yScore = []
-
+        self.accuracy_history = []
+        self.precision_history = []
+        self.recall_history = []
+        self.f1_history = []
+        self.auroc_history = []
 
     def trainTestData(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         self.figNumber += 1
@@ -58,11 +65,10 @@ class Metrics:
         yTrue = np.zeros(0, dtype=int)
         yScore = np.empty((0, self.outPutDim))
 
-        self.model.eval()  
+        self.model.eval()
         with torch.no_grad():
             for images_batch, labels_batch in self.data:
                 images_batch = images_batch.to(self.device)
-
                 scores = self.model(images_batch)
                 _, yPredBatch = scores.max(1)
 
@@ -74,44 +80,53 @@ class Metrics:
                 yTrue = np.concatenate((yTrue, labels_batch))
                 yScore = np.concatenate((yScore, yScoreBatch))
 
-        self.yPred = yPred
-        self.yTrue = yTrue
-        self.yScore = yScore
+        self.yPred = np.concatenate((self.yPred, yPred))
+        self.yTrue = np.concatenate((self.yTrue, yTrue))
+        self.yScore = np.concatenate((self.yScore, yScore))
+
+        self.accuracy_history.append(self._getAccuracy())
+        self.precision_history.append(self._getPrecision())
+        self.recall_history.append(self._getRecall())
+        self.f1_history.append(self._getF1Score())
+        self.auroc_history.append(self._getAuroc())
 
         return yPred, yTrue, yScore
 
-
-    @erroWrapper       
+    @erroWrapper
     def _getAccuracy(self) -> float:
-        return accuracy_score(self.y_true, self.y_pred)
-    
-    @erroWrapper       
+        return accuracy_score(self.yTrue, self.yPred)
 
+    @erroWrapper
     def _getPrecision(self) -> float:
-        return precision_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
-    
-    @erroWrapper       
-    def _getRecall(self) -> float:
-        return recall_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
-    
-    @erroWrapper       
-    def _getF1Score(self) -> float:
-        return f1_score(self.y_true, self.y_pred, average='weighted', zero_division=0)
-    
-    @erroWrapper       
-    def _getConfusionMatrix(self) -> np.ndarray:
-        return confusion_matrix(self.y_true, self.y_pred)
-    
-    @erroWrapper       
-    def _getAuroc(self) -> float:
-        return roc_auc_score(self.y_true, self.y_score, multi_class='ovr', average='weighted')
-    
-    @erroWrapper       
-    def _classificationReport(self) -> str | dict:
-        return classification_report(self.y_true, self.y_pred)
-    
-    def __str__(self) -> str:
+        return precision_score(self.yTrue, self.yPred, average="weighted", zero_division=0)
 
+    @erroWrapper
+    def _getRecall(self) -> float:
+        return recall_score(self.yTrue, self.yPred, average="weighted", zero_division=0)
+
+    @erroWrapper
+    def _getF1Score(self) -> float:
+        return f1_score(self.yTrue, self.yPred, average="weighted", zero_division=0)
+
+    @erroWrapper
+    def _getConfusionMatrix(self) -> np.ndarray:
+        return confusion_matrix(self.yTrue, self.yPred)
+
+    @erroWrapper
+    def _getAuroc(self) -> float:
+        if len(self.yScore.shape) == 2:
+            if self.yScore.shape[1] == 2:
+                return roc_auc_score(self.yTrue, self.yScore[:, 1])
+            else:
+                return roc_auc_score(self.yTrue, self.yScore, multi_class="ovr", average="weighted")
+        else:
+            return roc_auc_score(self.yTrue, self.yScore)
+
+    @erroWrapper
+    def _classificationReport(self) -> str | dict:
+        return classification_report(self.yTrue, self.yPred)
+
+    def __str__(self) -> str:
         return (
             f"📊 Evaluation Results\n"
             f"---------------------------\n"
@@ -123,117 +138,54 @@ class Metrics:
             f"Confusion Matrix:\n{self._getConfusionMatrix()}\n\n"
             f"Classification Report:\n{self._classificationReport()}\n"
         )
-    
 
-    def saveMetrics(plot: Figure, path: str, name: str = "imagem", figNumber: int = 0, type: str = "png") -> None:
-        os.makedirs(path, exist_ok=True)
-
-        filename = f"{name}_epoch{figNumber}.{type}"
-       
-
-        plot.savefig(os.path.join(path, filename), format=type, bbox_inches='tight')
+    def saveMetrics(self, plot: plt.Figure, path: str = "figures", name: str = "imagem", figNumber: int = 0, type: str = "png") -> None:
+        current_file = os.path.abspath(__file__)
+        base_dir = os.path.dirname(os.path.dirname(current_file))
+        safe_path = path.lstrip("/")
+        save_dir = os.path.join(base_dir, safe_path, getattr(self, "nameModel", "default_model"))
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, f"{name}_epoch{figNumber}.{type}")
+        plot.savefig(save_path, format=type, bbox_inches="tight")
         plt.close(plot)
 
-        
-    def _plotAccuracy(self) -> Figure:
+    def _plotGeneric(self, values, title, ylabel, color, name):
+        if not values:
+            print(f"[WARNING] Nenhum dado para plotar em {name}")
+            return None
+
         fig, ax = plt.subplots()
-        ax.plot(self.accuracies, marker='o')
-        ax.set_title("Accuracy por Geração")
+        ax.plot(range(1, len(values) + 1), values, color=color)
+        ax.set_title(title)
         ax.set_xlabel("Geração")
-        ax.set_ylabel("Accuracy")
+        ax.set_ylabel(ylabel)
         ax.grid(True)
 
         if self.saveFig:
-            self.saveMetrics(fig, path=self.savePathFigs, name="accuracy", figNumber=self.figNumber)
-
-        return fig
-    
-    def _plotAuroc(self) -> Figure:
-        fig, ax = plt.subplots()
-        ax.plot(self.aurocs, marker='o', color='orange')
-        ax.set_title("AUROC por Geração")
-        ax.set_xlabel("Geração")
-        ax.set_ylabel("AUROC")
-        ax.grid(True)
-
-        if self.saveFig:
-            self.saveMetrics(fig, path=self.savePathFigs, name="auroc", figNumber=self.figNumber)
+            self.saveMetrics(fig, path=self.savePathFigs, name=name, figNumber=self.figNumber)
 
         return fig
 
-    def _plotPrecision(self) -> Figure:
-        fig, ax = plt.subplots()
-        ax.plot(self.precisions, marker='o', color='green')
-        ax.set_title("Precision por Geração")
-        ax.set_xlabel("Geração")
-        ax.set_ylabel("Precision")
-        ax.grid(True)
+    def _plotAccuracy(self): return self._plotGeneric(self.accuracy_history, "Accuracy por Geração", "Accuracy", "blue", "accuracy")
+    def _plotAuroc(self): return self._plotGeneric(self.auroc_history, "AUROC por Geração", "AUROC", "orange", "auroc")
+    def _plotPrecision(self): return self._plotGeneric(self.precision_history, "Precision por Geração", "Precision", "green", "precision")
+    def _plotRecall(self): return self._plotGeneric(self.recall_history, "Recall por Geração", "Recall", "purple", "recall")
+    def _plotF1Score(self): return self._plotGeneric(self.f1_history, "F1 Score por Geração", "F1 Score", "red", "f1_score")
 
-        if self.saveFig:
-            self.saveMetrics(fig, path=self.savePathFigs, name="precision", figNumber=self.figNumber)
-
-        plt.show()
-        return fig
-
-
-    def _plotRecall(self) -> Figure:
-        fig, ax = plt.subplots()
-        ax.plot(self.recalls, marker='o', color='purple')
-        ax.set_title("Recall por Geração")
-        ax.set_xlabel("Geração")
-        ax.set_ylabel("Recall")
-        ax.grid(True)
-
-        if self.saveFig:
-            self.saveMetrics(fig, path=self.savePathFigs, name="recall", figNumber=self.figNumber)
-
-        return fig
-
-
-    def _plotF1Score(self) -> Figure:
-        fig, ax = plt.subplots()
-        ax.plot(self.f1_scores, marker='o', color='red')
-        ax.set_title("F1 Score por Geração")
-        ax.set_xlabel("Geração")
-        ax.set_ylabel("F1 Score")
-        ax.grid(True)
-
-        if self.saveFig:
-            self.saveMetrics(fig, path=self.savePathFigs, name="f1_score", figNumber=self.figNumber)
-
-        return fig
-
-    def _plotConfusionMatrixt(self) -> Figure:
-        cm = self.confusion_matrices[-1]
+    def _plotConfusionMatrix(self):
+        cm = self._getConfusionMatrix()
         fig, ax = plt.subplots(figsize=(6, 5))
-        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', ax=ax)
-        ax.set_title("Matriz de Confusão - Última Geração")
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax)
+        ax.set_title("Matriz de Confusão")
         ax.set_xlabel("Predito")
         ax.set_ylabel("Real")
-
         if self.saveFig:
             self.saveMetrics(fig, path=self.savePathFigs, name="confusion_matrix", figNumber=self.figNumber)
-
         plt.show()
         return fig
 
-    def showAll(self) -> None:
-
-        """
-        Exibe todos os gráficos (AUROC, Matriz de Confusão, Precision, Recall e F1).
-        Se self.saveFig = True, cada gráfico será salvo com nome + epoch.
-        """
-        fig1 = self._plotAuroc()
-        plt.show(fig1)
-
-        fig2 = self._plotConfusionMatrixt()
-        plt.show(fig2)
-
-        fig3 = self._plotPrecision()
-        plt.show(fig3)
-
-        fig4 = self._plotRecall()
-        plt.show(fig4)
-
-        fig5 = self._plotF1Score()
-        plt.show(fig5)
+    def showAll(self):
+        for plot_func in [self._plotAccuracy, self._plotAuroc, self._plotConfusionMatrix, self._plotPrecision, self._plotRecall, self._plotF1Score]:
+            fig = plot_func()
+            if fig:
+                plt.show(fig)
