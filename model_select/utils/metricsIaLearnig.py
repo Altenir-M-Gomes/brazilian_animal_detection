@@ -34,7 +34,7 @@ class Metrics:
         self,
         model: nn.Module,
         device: torch.device,
-        testDate: DataLoader,
+        testData: DataLoader,
         outPutDim: int = 2,
         savePathFigs: str = "/figures",
         saveFig: bool = False,
@@ -46,7 +46,7 @@ class Metrics:
         self.figNumber = 0
         self.model = model
         self.device = device
-        self.data = testDate
+        self.data = testData
         self.outPutDim = outPutDim
         
         self.yTrue = np.zeros(0, dtype=int)
