@@ -3,6 +3,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: deteccao-animais-postgres
 spec:
+  storageClassName: local-path
   resources:
     requests:
       storage: 1Gi
@@ -23,6 +24,8 @@ spec:
       labels:
         app: deteccao-animais-postgres
     spec:
+      securityContext:
+        fsGroup: 999   
       containers:
         - name: deteccao-animais-postgres
           image: postgres:latest
@@ -41,6 +44,8 @@ spec:
               value: "en_US.UTF-8"
             - name: LC_ALL
               value: "en_US.UTF-8"
+          securityContext:
+            runAsUser: 999 
       volumes:
         - name: pv
           persistentVolumeClaim:
