@@ -26,7 +26,12 @@ class UserController:
         
         await UserService.sendConfirmationEmail(emailTo = newUser.email, nome = newUser.nome, id=int(newUser.id))
         
-        return newUser
+        return {
+            "id": newUser.id,
+            "nome": newUser.nome,
+            "email": newUser.email,
+            "ativo": newUser.ativo
+        }
         
     
     @router.post('/verify-acount', status_code=status.HTTP_201_CREATED, response_model=TokenVerifedSchema, tags=['Usuário'])
@@ -75,7 +80,6 @@ class UserController:
             "user": authToken[0],
             "access_token": authToken[1],
             "token_type": "bearer"
-
         }
 
 

@@ -1,3 +1,3 @@
-__all__ = ['CustomDataset', 'TrainDatasetImplemetation']
-from .customDataset import CustomDataset
-from .loadDataset import TrainDatasetImplemetation
+__all__ = ['ImageDataset', 'TrainDataset']
+from .ImageDataset import ImageDataset
+from .trainImplematation import TrainDataset

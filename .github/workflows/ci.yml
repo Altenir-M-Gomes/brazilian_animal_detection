@@ -9,7 +9,9 @@ on:
 jobs:
   buildar-docker-api:
     runs-on: ubuntu-latest
-    environment: "Brazilian animais" # pega os secrets do ambiente
+    environment: "Brazilian animais" 
+    env:
+      IMAGE_NAME: altenirm/deteao-de-animais:latest
 
     steps:
       - uses: actions/checkout@v4
@@ -23,19 +25,45 @@ jobs:
 
       - name: Configurar ambiente
         run: |
-          cp .env.example .env
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> .env
+          ls -la
+          cp backend/.env.example backend/.env
+          echo "DB_URL=${{ secrets.DB_URL }}" >> backend/.env
+          echo "MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}" >> backend/.env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> backend/.env
 
-      - uses: docker/build-push-action@v5
+      - name: Build Docker Image
+        run: docker build -t $IMAGE_NAME ./backend
+
+
+      - name: Push Docker Image
+        run: docker push $IMAGE_NAME
+  
+  buildar-docker-front:
+    runs-on: ubuntu-latest
+    environment: "Brazilian animais"
+    env:
+      IMAGE_NAME_FRONT: altenirm/deteccao-front-end:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
         with:
-          context: .
-          push: true
-          tags: ${{ secrets.IMAGEM_DOCKER }}
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Docker Image Frontend
+        run: docker build -t $IMAGE_NAME_FRONT ./front-end
+
+      - name: Push Docker Image Frontend
+        run: docker push $IMAGE_NAME_FRONT
 
   fazer-deploy:
     runs-on: ubuntu-latest
-    needs: buildar-docker-api
-    environment: "Brazilian animais" # pega os secrets do ambiente
+    needs: [ buildar-docker-api, buildar-docker-front ]
+    environment: "Brazilian animais" 
 
     steps:
       - name: Criar pasta kube
@@ -58,18 +86,51 @@ jobs:
         run: |
           kubectl config get-contexts
           kubectl get nodes
+          kubectl get pods
+          kubectl get configmaps
 
-      - name: Remover deployment anterior
-        run: kubectl delete deployment personal-finance-api || true
+      - name: Remover deployments/configmaps anteriores
+        run: |
+          kubectl delete deployment deteccao-animais-api || true
+          kubectl delete deployment deteccao-front || true
+          kubectl delete deployment deteccao-animais-postgres || true
+          kubectl delete configmap csdeteccao-postgres-config || true
 
-      - name: Aplicar novo deployment
-        run: kubectl apply -f deploy/personal-finance-api-deployment.yaml
+      - name: Aplicar configmap do postgres
+        run: kubectl apply -f deploy/config/deteccao-animais-postgres-config.yaml
+      
+      - name: Aplicar Postgres
+        run: kubectl apply -f deploy/deployments/deteccao-animais-postgres.yaml
 
-      - name: Aguardar rollout do deployment
-        run: kubectl rollout status deployment/personal-finance-api --timeout=90s
+      - name: Aguardar Postgres iniciar
+        run: |
+          echo "Esperando Postgres subir..."
+          kubectl wait --for=condition=ready pod -l app=deteccao-animais-postgres --timeout=300s
+
+      - name: Aplicar novo deployment da api
+        run: kubectl apply -f deploy/deployments/deteccao-animais-api.yaml
+
+      - name: Aplicar novo deployment do front
+        run: kubectl apply -f deploy/deployments/deteccao-animais-front-end.yaml
+ 
+      - name: Aguardar rollout do deployment API
+        run: kubectl rollout status deployment/deteccao-animais-api --timeout=600s
+
+      - name: Aguardar rollout do deployment Front
+        run: kubectl rollout status deployment/deteccao-front --timeout=600s
+     
+      - name: Criar tabelas no banco
+        run: |
+          POD=$(kubectl get pods -l app=deteccao-animais-api -o jsonpath="{.items[0].metadata.name}")
+          kubectl exec -i $POD -- python -m ultils.createTables
+          kubectl exec -i $POD -- python -m ultils.seed
 
       - name: Verificar status do deployment
         run: |
           kubectl get pods
-          kubectl describe deploy/personal-finance-api
-          kubectl logs deploy/personal-finance-api
+          kubectl describe deploy/deteccao-animais-api
+          kubectl logs deploy/deteccao-animais-api
+          kubectl describe deploy/deteccao-front
+          kubectl logs deploy/deteccao-front
+          kubectl describe deploy/deteccao-animais-postgres
+          kubectl logs deploy/deteccao-animais-postgres

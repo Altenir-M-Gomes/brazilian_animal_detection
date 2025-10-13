@@ -1,0 +1,75 @@
+# Ignorar dependências locais
+node_modules
+npm-debug.log
+yarn-error.log
+pnpm-lock.yaml
+
+# Builds locais
+dist
+build
+
+# Logs
+*.log
+*.log.*
+logs
+*.out
+*.pid
+
+# Configurações de editor/IDE
+.vscode
+.idea
+*.swp
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de ambiente (se existirem)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Dependências e caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Virtualenv
+env/
+venv/
+.venv/
+
+# Logs
+*.log
+*.log.*
+logs/
+*.out
+*.pid
+
+# Configurações de editor/IDE
+.vscode/
+.idea/
+*.swp
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos de ambiente (sensíveis)
+.env
+.env.local
+.env.*.local
+
+# Testes
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.tox/
+
+# Docker
+docker-compose.override.yml

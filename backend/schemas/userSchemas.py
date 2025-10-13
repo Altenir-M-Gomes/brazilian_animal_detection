@@ -8,7 +8,6 @@ class LoginSchema(BaseModel):
 class UsuarioSchema(BaseModel):
     id: Optional[int] = Field(..., example=1)
     nome: str = Field(..., example="Altenir")
-    sobrenome: str = Field(..., example="Modesto Gomes")
     email: EmailStr = Field(..., example="altenirgomes@gmail.com")
     ativo: bool = Field(False, example=False)
     class Config:
@@ -27,8 +26,7 @@ class ResetPasswordEmailSchema(BaseModel):
 
 class UsuarioUpdateSchema(BaseModel):
     id: Optional[int] = Field(..., example=1)
-    nome: str = Field(..., example="Altenir")
-    sobrenome: str = Field(..., example="Modesto Gomes")
+    nome: str = Field(..., example="Altenir Modesto Gomes")
     email: EmailStr = Field(..., example="altenirgomes@gmail.com")
     class Config:
         from_attributes = True

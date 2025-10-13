@@ -3,6 +3,7 @@ from configs.envVariables import settings
 from app import api_router
 from fastapi import FastAPI
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 
 load_dotenv()
@@ -15,12 +16,20 @@ Inclui endpoints para autenticação, usuários e análise de dados.
 """,
     version="1.0.0",
     contact={
-        "name": "Seu Nome",
-        "email": "seuemail@exemplo.com",
+        "name": "Altenir Modesto Gomes",
+        "email": "altenirgomesmodesto@gmail.com",
     },
     license_info={
         "name": "MIT License",
     },
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],   # permite qualquer origem
+    allow_credentials=True,
+    allow_methods=["*"],   # permite todos os métodos HTTP
+    allow_headers=["*"],   # permite todos os headers
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
