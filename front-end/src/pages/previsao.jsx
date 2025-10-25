@@ -91,7 +91,7 @@ export default function PrevisaoScreen() {
 
   const handleDownload = async (files, nomeZip) => {
     if (!files || files.length === 0) {
-      toast.warning("Nenhuma imagem para baixar!");
+      toast.warning("Nenhuma imagem para baixar !");
       return;
     }
 
@@ -100,12 +100,10 @@ export default function PrevisaoScreen() {
     try {
       toast.info(`Gerando ${nomeZip}...`);
 
-      // Adiciona os arquivos ao ZIP
       for (const file of files) {
         zip.file(file.name, file.blob);
       }
 
-      // Gera o ZIP e baixa
       const zipBlob = await zip.generateAsync({ type: "blob" });
       saveAs(zipBlob, nomeZip);
 
@@ -126,7 +124,6 @@ export default function PrevisaoScreen() {
     <div>
       <Header />
       <div className="flex flex-col justify-center items-center min-h-screen gap-6 p-4">
-        {/* INPUTS */}
         <input
           type="file"
           ref={fileInputRef}

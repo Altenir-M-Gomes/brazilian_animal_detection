@@ -11,12 +11,17 @@ import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/login";
 import PrevisaoScreen from "./pages/previsao";
 import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import CadastrarPage from "./pages/cadastrar";
 import { requireAuthLoader } from "./loaders/requireAuthLoader";
 import VerificarConta from "./pages/verificarConta";
+
 function NotFound() {
   return <h1>404 - Página não encontrada</h1>;
 }
+
+// detecta se é mobile
+const isMobile = window.innerWidth < 768;
 
 const router = createBrowserRouter([
   {
@@ -25,11 +30,11 @@ const router = createBrowserRouter([
         <Outlet />
       </AuthProvider>
     ),
-    errorElement: <NotFound />, 
+    errorElement: <NotFound />,
     children: [
       {
         path: "/",
-        element: <Navigate to="/login" replace />, 
+        element: <Navigate to="/login" replace />,
       },
       {
         path: "/login",
@@ -59,7 +64,7 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ToastContainer
-      position="top-right"
+      position={isMobile ? "bottom-center" : "top-right"} // 📱 embaixo no mobile
       autoClose={3000}
       hideProgressBar={false}
       newestOnTop
@@ -68,6 +73,7 @@ createRoot(document.getElementById("root")).render(
       draggable
       pauseOnHover
       theme="light"
+      style={!isMobile ? { marginTop: "60px" } : undefined} // 💻 afasta do header
     />
     <RouterProvider router={router} />
   </StrictMode>
