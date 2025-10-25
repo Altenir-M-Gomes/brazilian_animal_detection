@@ -16,9 +16,6 @@ export default function Header() {
     navigate("/login")
   }
 
-  function handleProfile() {
-    navigate("/profile")
-  }
 
   return (
     <div className="w-full bg-[#1f3a56] h-14 flex justify-end items-center px-12">
@@ -31,9 +28,6 @@ export default function Header() {
         </DropdownMenuTrigger>
 
         <DropdownMenuContent className="w-40 mr-12 mt-2 bg-white">
-          <DropdownMenuItem onClick={handleProfile}>
-            Meu perfil
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleLogout}>
             Sair
           </DropdownMenuItem>
