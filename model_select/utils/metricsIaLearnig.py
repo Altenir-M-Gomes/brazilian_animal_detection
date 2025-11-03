@@ -157,7 +157,7 @@ class Metrics:
         fig, ax = plt.subplots()
         ax.plot(range(1, len(values) + 1), values, color=color)
         ax.set_title(title)
-        ax.set_xlabel("Geração")
+        ax.set_xlabel("época")
         ax.set_ylabel(ylabel)
         ax.grid(True)
 
@@ -166,11 +166,11 @@ class Metrics:
 
         return fig
 
-    def _plotAccuracy(self): return self._plotGeneric(self.accuracy_history, "Accuracy por Geração", "Accuracy", "blue", "accuracy")
-    def _plotAuroc(self): return self._plotGeneric(self.auroc_history, "AUROC por Geração", "AUROC", "orange", "auroc")
-    def _plotPrecision(self): return self._plotGeneric(self.precision_history, "Precision por Geração", "Precision", "green", "precision")
-    def _plotRecall(self): return self._plotGeneric(self.recall_history, "Recall por Geração", "Recall", "purple", "recall")
-    def _plotF1Score(self): return self._plotGeneric(self.f1_history, "F1 Score por Geração", "F1 Score", "red", "f1_score")
+    def _plotAccuracy(self): return self._plotGeneric(self.accuracy_history, "Accuracy por época", "Accuracy", "blue", "accuracy")
+    def _plotAuroc(self): return self._plotGeneric(self.auroc_history, "AUROC por época", "AUROC", "orange", "auroc")
+    def _plotPrecision(self): return self._plotGeneric(self.precision_history, "Precision por época", "Precision", "green", "precision")
+    def _plotRecall(self): return self._plotGeneric(self.recall_history, "Recall por época", "Recall", "purple", "recall")
+    def _plotF1Score(self): return self._plotGeneric(self.f1_history, "F1 Score por época", "F1 Score", "red", "f1_score")
 
     def _plotConfusionMatrix(self):
         cm = self._getConfusionMatrix()

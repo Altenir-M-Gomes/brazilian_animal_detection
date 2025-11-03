@@ -5,6 +5,7 @@ from ultralytics import YOLO
 
 class ImagemDetectionModels:
 
+
     @staticmethod
     def resnet50(num_class: int = 2) -> models:
         # Create instace of resnet50
@@ -39,18 +40,23 @@ class ImagemDetectionModels:
         # substitui a última camada (fc)
         model.classifier[6] = torch.nn.Linear(num_features, num_class)
         return model
-
+    
     @staticmethod
-    def yolov8(model_name: str = "yolov8n", num_class: int = 2):
+    def yolov8(model_name: str = "yolov8n", selected_classes=None):
         """
-        model_name pode ser: yolov8n, yolov8s, yolov8m, yolov8l, yolov8x
+        Cria um modelo YOLOv8 pré-treinado.
+        Se 'selected_classes' for informado, apenas essas classes serão usadas na predição.
+        Exemplo: selected_classes = [0, 2, 5]
         """
-        model = YOLO(model_name + ".pt")  # carrega pesos pré-treinados
-        if num_class:
-            # reconfigura a cabeça de predição
-            model.model.model[-1] = torch.nn.Conv2d(
-                in_channels=model.model.model[-1].in_channels,
-                out_channels=num_class * (model.model.model[-1].out_channels // model.model.model[-1].in_channels),
-                kernel_size=1
-            )
+        # Carrega o modelo pré-treinado
+        model = YOLO(model_name + ".pt")
+
+        # Exemplo de uso: prever apenas classes específicas
+        if selected_classes is not None:
+            results = model.predict(source="0", show=True, stream=True, classes=selected_classes)
+            for i, result in enumerate(results):
+                print("Processando resultado da classe:", result.boxes.cls)
+        else:
+            print(f"Modelo {model_name} carregado com sucesso.")
+
         return model
