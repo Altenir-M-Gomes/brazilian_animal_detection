@@ -8,7 +8,7 @@ wcs_camera_traps.*
 /DATASET_CAMTRAP
 __pycache__/
 *.py[cod]
-
+/model_select/weights
 
 # dependencies
 /front-end/node_modules
